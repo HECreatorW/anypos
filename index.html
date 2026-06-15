@@ -3,12 +3,347 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kopi Chat — Realtime Chat</title>
+  <title>AnyPos — Realtime Chat</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Playfair+Display:wght@600;700&family=Lobster&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/base.css" />
-  <link rel="stylesheet" href="css/themes.css" />
+  <style>
+/* ============================================================
+   Kopi Chat — base layout & components (colors come from themes.css)
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --rad: 14px; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font-family, 'Inter', system-ui, sans-serif);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+.hidden { display: none !important; }
+.muted { color: var(--muted); }
+.small { font-size: 0.82rem; }
+img { max-width: 100%; display: block; }
+button, input, textarea, select { font: inherit; color: inherit; }
+a { color: var(--accent); }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--surface2); border: 1px solid var(--line); color: var(--text);
+  padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 600;
+  transition: filter .15s, transform .1s, background .15s;
+}
+.btn:hover { filter: brightness(1.12); }
+.btn:active { transform: translateY(1px); }
+.btn--primary { background: linear-gradient(120deg, var(--accent), var(--accent2)); border-color: transparent; color: #1c130c; }
+.btn--block { width: 100%; }
+.btn--sm { padding: 7px 12px; font-size: .85rem; border-radius: 9px; }
+.btn--xs { padding: 5px 9px; font-size: .76rem; border-radius: 8px; }
+.btn--danger { background: #5b2020; border-color: #7a2b2b; color: #ffd9d9; }
+.btn--social { width: 100%; background: #fff; color: #222; border: none; }
+.icon-btn {
+  width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%;
+  background: transparent; border: none; cursor: pointer; color: var(--muted); font-size: 1.2rem;
+}
+.icon-btn:hover { background: var(--surface2); color: var(--text); }
+.icon-btn--send { background: linear-gradient(120deg, var(--accent), var(--accent2)); color: #1c130c; }
+
+/* ============ AUTH ============ */
+.auth {
+  position: fixed; inset: 0; display: grid; place-items: center; padding: 20px;
+  background: var(--bg);
+}
+.auth__bg {
+  position: fixed; inset: 0; z-index: 0; opacity: .5;
+  background:
+    radial-gradient(600px 400px at 20% 10%, var(--accent2), transparent 60%),
+    radial-gradient(700px 500px at 90% 90%, var(--accent), transparent 60%);
+}
+.auth__card {
+  position: relative; z-index: 1; width: 100%; max-width: 400px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 22px;
+  padding: 34px 30px; box-shadow: 0 30px 70px rgba(0,0,0,.5);
+}
+.auth__brand { text-align: center; margin-bottom: 22px; }
+.auth__logo { font-size: 2.6rem; }
+.auth__brand h1 { font-size: 1.7rem; margin-top: 6px; }
+.auth__brand p { color: var(--muted); font-size: .9rem; margin-top: 4px; }
+.auth__tabs { display: flex; gap: 6px; background: var(--bg); padding: 5px; border-radius: 12px; margin-bottom: 18px; }
+.auth__tab { flex: 1; padding: 9px; border: none; background: transparent; border-radius: 9px; cursor: pointer; color: var(--muted); font-weight: 600; }
+.auth__tab.is-active { background: var(--surface2); color: var(--text); }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: .8rem; color: var(--muted); margin-bottom: 6px; }
+.field input {
+  width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--bg); color: var(--text); outline: none;
+}
+.field input:focus { border-color: var(--accent); }
+.auth__err { color: #ff9a9a; font-size: .85rem; margin-top: 10px; min-height: 1em; text-align: center; }
+.auth__divider { text-align: center; color: var(--muted); margin: 18px 0; position: relative; font-size: .8rem; }
+.auth__divider::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--line); }
+.auth__divider span { background: var(--panel); padding: 0 12px; position: relative; }
+.auth__note { text-align: center; color: var(--muted); font-size: .76rem; margin-top: 16px; }
+
+/* ============ APP SHELL ============ */
+.app { display: grid; grid-template-columns: 68px 380px 1fr; height: 100vh; }
+
+/* ---- RAIL ---- */
+.rail {
+  background: var(--rail); display: flex; flex-direction: column; justify-content: space-between;
+  align-items: center; padding: 14px 0; border-right: 1px solid var(--line);
+}
+.rail__top, .rail__bottom { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.rail__btn {
+  width: 44px; height: 44px; border-radius: 13px; border: none; cursor: pointer;
+  background: transparent; color: var(--muted); display: grid; place-items: center; position: relative;
+}
+.rail__btn svg { width: 23px; height: 23px; fill: currentColor; }
+.rail__btn:hover { background: var(--surface); color: var(--text); }
+.rail__btn.is-active { background: var(--surface2); color: var(--accent); }
+.rail__btn--dev { color: #e7b96b; }
+.rail__badge {
+  position: absolute; top: 4px; right: 4px; background: #e0584f; color: #fff;
+  font-size: .62rem; min-width: 16px; height: 16px; border-radius: 8px; display: grid; place-items: center; padding: 0 4px;
+}
+.rail__avatar { width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent; cursor: pointer; padding: 0; }
+
+/* ---- PANEL ---- */
+.panel { background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; overflow: hidden; }
+.pane { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+.pane__head { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 10px; }
+.pane__head h2 { font-size: 1.3rem; }
+.search { display: flex; gap: 8px; padding: 6px 14px 12px; }
+.search input {
+  flex: 1; padding: 10px 14px; border-radius: 20px; border: 1px solid var(--line);
+  background: var(--bg); color: var(--text); outline: none;
+}
+.search input:focus { border-color: var(--accent); }
+.subhead { padding: 12px 16px 6px; color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: 1px; }
+.list { flex: 1; overflow-y: auto; }
+
+/* rows */
+.row, .urow, .devrow { display: flex; align-items: center; gap: 12px; padding: 11px 14px; cursor: pointer; border-bottom: 1px solid var(--line); }
+.row:hover, .urow:hover { background: var(--surface); }
+.row__meta, .urow__meta, .devrow__meta { flex: 1; min-width: 0; }
+.row__top { display: flex; justify-content: space-between; gap: 8px; }
+.row__name, .urow__name, .devrow__name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row__time { color: var(--muted); font-size: .72rem; flex-shrink: 0; }
+.row__preview, .urow__sub, .devrow__sub { color: var(--muted); font-size: .83rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.urow__actions { display: flex; gap: 6px; }
+.search-result { padding: 0 6px; }
+.search-result .urow { border-radius: 10px; border-bottom: none; }
+
+/* ---- AVATAR ---- */
+.av { position: relative; border-radius: 50%; display: inline-grid; place-items: center; overflow: visible; flex-shrink: 0; color: #fff; font-weight: 700; }
+.av img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.av__initial { font-size: .9em; }
+.av--group { background: var(--surface2); }
+.av__friend { position: absolute; bottom: -2px; right: -2px; font-size: .7rem; background: var(--panel); border-radius: 50%; padding: 1px; line-height: 1; }
+.av__dev { position: absolute; top: -3px; right: -3px; font-size: .7rem; color: #ffd76b; }
+/* borders */
+.av--b-cream { box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px #efe2d2; }
+.av--b-double { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--accent), 0 0 0 6px var(--panel), 0 0 0 8px var(--accent2); }
+.av--b-gold { box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px #f6d36b, 0 0 14px #f6d36b88; }
+.av--b-gradient { box-shadow: 0 0 0 3px var(--panel); outline: 3px solid transparent; background-clip: padding-box; }
+.av--b-gradient::after { content:''; position:absolute; inset:-6px; border-radius:50%; background: conic-gradient(#f6d36b,#ff6fd8,#43cea2,#f6d36b); z-index:-1; }
+.av--b-spin::after { content:''; position:absolute; inset:-5px; border-radius:50%; background: conic-gradient(from 0deg, var(--accent), #ff6fd8, #43cea2, var(--accent)); z-index:-1; animation: spin 3s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.prem-tag { font-size: .6rem; background: linear-gradient(120deg,#f6d36b,#e0a045); color:#3a2300; padding: 1px 6px; border-radius: 6px; font-weight: 800; vertical-align: middle; }
+.ban-tag { font-size: .6rem; background: #5b2020; color: #ffd9d9; padding: 1px 6px; border-radius: 6px; }
+
+/* ============ MAIN / CHAT ============ */
+.main { position: relative; display: flex; flex-direction: column; background: var(--chat-bg); overflow: hidden; }
+.main__empty { margin: auto; text-align: center; color: var(--muted); padding: 20px; }
+.main__empty-icon { font-size: 3.4rem; }
+.main__empty h2 { color: var(--text); margin: 10px 0; }
+.main__lock { margin-top: 22px; font-size: .8rem; background: var(--surface); display: inline-block; padding: 7px 14px; border-radius: 20px; }
+
+.chatview { display: flex; flex-direction: column; height: 100%; }
+.chatview__head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.chatview__back { display: none; }
+.chatview__peer { display: flex; align-items: center; gap: 10px; }
+.peer__name { font-weight: 600; }
+.peer__sub { font-size: .76rem; color: var(--muted); }
+.chatview__body { flex: 1; overflow-y: auto; padding: 18px 8vw; display: flex; flex-direction: column; gap: 4px; }
+.day-sep { text-align: center; color: var(--muted); font-size: .8rem; margin: 14px 0; }
+
+.msg { display: flex; max-width: 72%; }
+.msg.mine { align-self: flex-end; justify-content: flex-end; }
+.bubble {
+  position: relative; background: var(--bubble-other); padding: 7px 10px 18px; border-radius: 10px;
+  min-width: 70px; max-width: 100%; word-wrap: break-word; box-shadow: 0 1px 1px rgba(0,0,0,.2); user-select: none;
+}
+.msg.mine .bubble { background: var(--bubble-mine); }
+.bubble__sender { font-size: .74rem; color: var(--accent); font-weight: 700; margin-bottom: 2px; }
+.bubble-text { white-space: pre-wrap; line-height: 1.4; }
+.bubble__time { position: absolute; right: 9px; bottom: 4px; font-size: .64rem; color: var(--muted); }
+.bubble--deleted { font-style: italic; color: var(--muted); }
+.bubble-media { border-radius: 8px; max-width: 320px; max-height: 360px; cursor: pointer; overflow: hidden; }
+.bubble-media video { width: 100%; border-radius: 8px; display: block; max-height: 360px; }
+.bubble-file { display: flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none; padding: 4px 2px; }
+.bubble-file small { color: var(--muted); margin-left: auto; }
+.ln { text-decoration: underline; }
+
+.chatview__input { display: flex; align-items: flex-end; gap: 8px; padding: 10px 14px; background: var(--panel); border-top: 1px solid var(--line); }
+.chatview__input textarea {
+  flex: 1; resize: none; max-height: 140px; padding: 11px 14px; border-radius: 20px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--text); outline: none; line-height: 1.4;
+}
+.chatview__input textarea:focus { border-color: var(--accent); }
+
+/* ============ SETTINGS ============ */
+.settings, .dev { overflow-y: auto; padding: 8px 16px 30px; }
+.profilecard { display: flex; align-items: center; gap: 14px; padding: 16px; background: var(--surface); border-radius: 14px; margin-bottom: 8px; }
+.profilecard__name { font-weight: 700; font-size: 1.05rem; }
+.profilecard__id { color: var(--muted); font-size: .85rem; }
+.seth { font-size: .8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin: 18px 0 8px; }
+.opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.opt { padding: 9px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: .85rem; position: relative; }
+.opt.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.opt.locked { opacity: .6; }
+.opts--av { gap: 10px; }
+.avopt { border: 2px solid transparent; background: none; border-radius: 50%; cursor: pointer; padding: 2px; position: relative; }
+.avopt.on { border-color: var(--accent); }
+.avopt--upload { width: 52px; height: 52px; border: 1px dashed var(--line); border-radius: 50%; display: grid; place-items: center; color: var(--muted); font-size: 1.1rem; }
+.avopt--upload small { font-size: .55rem; display: block; }
+.avopt .lk { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.45); border-radius: 50%; }
+.setfoot { margin-top: 26px; }
+
+/* ============ DEVELOPER ============ */
+.seg { display: flex; gap: 6px; background: var(--bg); padding: 5px; border-radius: 11px; margin-bottom: 14px; }
+.seg button { flex: 1; padding: 9px; border: none; background: transparent; color: var(--muted); border-radius: 8px; cursor: pointer; font-weight: 600; font-size: .85rem; }
+.seg button.is-active { background: var(--surface2); color: var(--text); }
+.devrow { border-radius: 10px; border-bottom: 1px solid var(--line); cursor: default; flex-wrap: wrap; }
+.devrow.banned { opacity: .6; }
+.devrow__actions { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+.devrow__actions select { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 4px 6px; font-size: .76rem; }
+.logrow { padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: .85rem; display: flex; flex-direction: column; gap: 3px; }
+.logrow code { background: var(--bg); padding: 2px 6px; border-radius: 6px; font-size: .72rem; color: var(--muted); word-break: break-all; }
+.logrow__act { color: var(--accent); }
+
+/* ============ MODAL / VIEWER / CTX / TOAST ============ */
+.modal { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; }
+.modal__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(2px); }
+.modal__card { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 24px; width: 92%; max-width: 420px; max-height: 86vh; overflow-y: auto; }
+.modal__card h3 { margin-bottom: 12px; }
+.modal__actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip { padding: 6px 12px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: .82rem; }
+.chip.on { background: var(--accent); color: #1c130c; border-color: transparent; }
+
+.viewer { position: fixed; inset: 0; z-index: 110; background: rgba(0,0,0,.92); display: grid; place-items: center; }
+.viewer__stage { max-width: 92vw; max-height: 86vh; }
+.viewer__stage img, .viewer__stage video { max-width: 92vw; max-height: 86vh; border-radius: 8px; }
+.viewer__close { position: absolute; top: 18px; right: 20px; background: none; border: none; color: #fff; font-size: 1.6rem; cursor: pointer; }
+.viewer__dl { position: absolute; top: 20px; left: 20px; color: #fff; text-decoration: none; background: rgba(255,255,255,.15); padding: 8px 14px; border-radius: 20px; font-size: .85rem; }
+
+.ctxmenu { position: fixed; z-index: 120; background: var(--surface2); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: 0 12px 34px rgba(0,0,0,.5); min-width: 190px; }
+.ctxmenu button { display: block; width: 100%; text-align: left; padding: 12px 16px; background: none; border: none; cursor: pointer; color: var(--text); font-size: .9rem; }
+.ctxmenu button:hover { background: var(--surface); }
+
+.toast { position: fixed; bottom: -60px; left: 50%; transform: translateX(-50%); background: var(--surface2); color: var(--text); padding: 12px 22px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.4); transition: bottom .3s; z-index: 130; border: 1px solid var(--line); font-size: .9rem; }
+.toast.show { bottom: 24px; }
+.toast.ok { border-color: #4c8a5a; }
+.toast.err { border-color: #a14444; }
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 860px) {
+  .app { grid-template-columns: 58px 1fr; }
+  .main { position: fixed; inset: 0; left: 0; z-index: 40; }
+  .main.hidden-mobile { display: none; }
+  .chatview__back { display: grid; }
+  .chatview__body { padding: 14px 12px; }
+  .msg { max-width: 85%; }
+}
+
+/* ============================================================
+   Kopi Chat — themes (free + premium) & fonts
+   Each [data-theme] sets the palette consumed by base.css.
+   ============================================================ */
+
+/* ---------- FONTS ---------- */
+[data-font="inter"]    { --font-family: 'Inter', system-ui, sans-serif; }
+[data-font="nunito"]   { --font-family: 'Nunito', system-ui, sans-serif; }
+[data-font="grotesk"]  { --font-family: 'Space Grotesk', system-ui, sans-serif; }
+[data-font="playfair"] { --font-family: 'Playfair Display', Georgia, serif; }
+[data-font="lobster"]  { --font-family: 'Lobster', cursive; }
+/* font preview on the option buttons */
+.fn-inter { font-family: 'Inter', sans-serif; }
+.fn-nunito { font-family: 'Nunito', sans-serif; }
+.fn-grotesk { font-family: 'Space Grotesk', sans-serif; }
+.fn-playfair { font-family: 'Playfair Display', serif; }
+.fn-lobster { font-family: 'Lobster', cursive; }
+
+/* ---------- THEME: MOCHA (default, dark coffee) ---------- */
+[data-theme="mocha"] {
+  --bg: #1b130d; --panel: #241a12; --rail: #140e09; --surface: #2c2017; --surface2: #38291d;
+  --text: #f3e9df; --muted: #a78b75; --line: rgba(255,255,255,.07);
+  --accent: #cd9b6a; --accent2: #8b5e3c;
+  --chat-bg: #18110b; --bubble-mine: #5a3d27; --bubble-other: #2c2017;
+}
+/* ---------- THEME: LATTE (light, creamy) ---------- */
+[data-theme="latte"] {
+  --bg: #f4ece2; --panel: #fbf6ef; --rail: #ece0d2; --surface: #f1e7da; --surface2: #e7d8c6;
+  --text: #3b2c20; --muted: #8a7560; --line: rgba(0,0,0,.08);
+  --accent: #b5733c; --accent2: #8a5326;
+  --chat-bg: #efe5d8; --bubble-mine: #e7cfa9; --bubble-other: #fbf6ef;
+}
+[data-theme="latte"] .bubble__time { color: #9b8470; }
+/* ---------- THEME: ESPRESSO (deep dark) ---------- */
+[data-theme="espresso"] {
+  --bg: #100a06; --panel: #1a110b; --rail: #0a0604; --surface: #221710; --surface2: #2e2015;
+  --text: #ede2d6; --muted: #8f765f; --line: rgba(255,255,255,.06);
+  --accent: #c08653; --accent2: #6f4422;
+  --chat-bg: #0d0805; --bubble-mine: #432c1a; --bubble-other: #1f160f;
+}
+
+/* ---------- PREMIUM: CARAMEL GOLD ---------- */
+[data-theme="caramel"] {
+  --bg: #20160c; --panel: #2b1d10; --rail: #170f07; --surface: #34230f; --surface2: #44300f;
+  --text: #fbeed0; --muted: #c0a164; --line: rgba(246,211,107,.14);
+  --accent: #f6d36b; --accent2: #c9962f;
+  --chat-bg: #1c130a; --bubble-mine: #6b4e16; --bubble-other: #2f2110;
+}
+/* ---------- PREMIUM: AFFOGATO GLASS ---------- */
+[data-theme="affogato"] {
+  --bg: #161018; --panel: rgba(40,30,46,.72); --rail: #120c16; --surface: rgba(60,46,68,.55); --surface2: rgba(80,60,90,.6);
+  --text: #f1e7f2; --muted: #b39ec0; --line: rgba(255,255,255,.12);
+  --accent: #d8a7e0; --accent2: #8d6e9c;
+  --chat-bg: #1a1320; --bubble-mine: #4a3556; --bubble-other: rgba(60,46,68,.7);
+}
+[data-theme="affogato"] .panel, [data-theme="affogato"] .chatview__head, [data-theme="affogato"] .chatview__input { backdrop-filter: blur(14px); }
+/* ---------- PREMIUM: TIRAMISU ---------- */
+[data-theme="tiramisu"] {
+  --bg: #241a18; --panel: #2f221f; --rail: #1a1210; --surface: #3a2a26; --surface2: #4a3530;
+  --text: #f6e8df; --muted: #bd9a8c; --line: rgba(255,255,255,.08);
+  --accent: #e6b89c; --accent2: #a9745a;
+  --chat-bg: #1f1614; --bubble-mine: #6a4435; --bubble-other: #33251f;
+}
+/* ---------- PREMIUM: COLD BREW NEON ---------- */
+[data-theme="coldbrew"] {
+  --bg: #0c1410; --panel: #11201a; --rail: #08110d; --surface: #16291f; --surface2: #1d3a2b;
+  --text: #e6fff0; --muted: #7ab79a; --line: rgba(0,255,170,.12);
+  --accent: #38e8a0; --accent2: #1f9c6c;
+  --chat-bg: #091310; --bubble-mine: #16493a; --bubble-other: #142822;
+}
+[data-theme="coldbrew"] .icon-btn--send, [data-theme="coldbrew"] .btn--primary { box-shadow: 0 0 14px #38e8a066; }
+
+/* ---------- theme swatch preview dots in settings ---------- */
+.opt--theme { padding-left: 30px; }
+.opt--theme::before { content: ''; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; border-radius: 50%; }
+.th-mocha::before { background: #cd9b6a; }
+.th-latte::before { background: #e7cfa9; }
+.th-espresso::before { background: #432c1a; }
+.th-caramel::before { background: #f6d36b; }
+.th-affogato::before { background: linear-gradient(135deg,#d8a7e0,#8d6e9c); }
+.th-tiramisu::before { background: #e6b89c; }
+.th-coldbrew::before { background: #38e8a0; }
+
+</style>
+  
 </head>
 <body>
   <!-- ============ AUTH SCREEN ============ -->
@@ -16,7 +351,7 @@
     <div class="auth__card">
       <div class="auth__brand">
         <div class="auth__logo">☕</div>
-        <h1>Kopi Chat</h1>
+        <h1>AnyPos</h1>
         <p>Ngobrol realtime, sehangat secangkir kopi.</p>
       </div>
 
@@ -134,7 +469,7 @@
     <main class="main" id="mainArea">
       <div class="main__empty" id="mainEmpty">
         <div class="main__empty-icon">☕</div>
-        <h2>Kopi Chat</h2>
+        <h2>AnyPos</h2>
         <p>Pilih percakapan untuk mulai mengobrol.<br/>Semua pesan kamu aman dengan Row Level Security.</p>
         <div class="main__lock">🔒 Database terlindungi RLS per pengguna</div>
       </div>
@@ -173,14 +508,1287 @@
 
   <!-- ============ SCRIPTS ============ -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js"></script>
-  <script src="js/util.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/friends.js"></script>
-  <script src="js/chat.js"></script>
-  <script src="js/groups.js"></script>
-  <script src="js/settings.js"></script>
-  <script src="js/developer.js"></script>
-  <script src="js/app.js"></script>
+  <script>
+/* ============================================================
+   Kopi Chat — Supabase configuration
+   ------------------------------------------------------------
+   The values below are PUBLIC by design:
+     - SUPABASE_URL          : your project endpoint
+     - SUPABASE_ANON_KEY     : the public "anon" key. It is safe to
+                               ship in the browser because every table
+                               is protected by Row Level Security (RLS).
+   NEVER put the service_role / secret key in this file.
+   ============================================================ */
+const SUPABASE_URL = 'https://ebdvczthxwyhyaqeqvrd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViZHZjenRoeHd5aHlhcWVxdnJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzODQ2ODAsImV4cCI6MjA5Njk2MDY4MH0.-i3IMBxquTq8uLIIR7go093LEFj9vJwRlHz6J2irXrA';
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,      // keep session in localStorage -> no re-login on refresh
+    autoRefreshToken: true,
+    detectSessionInUrl: true,  // needed for Google / OAuth redirect
+  },
+});
+
+// Global application namespace shared by all modules.
+window.App = {
+  sb,
+  me: null,              // my profile row
+  user: null,            // auth user
+  profileCache: {},      // id -> profile
+  conversations: [],     // my conversations (with meta)
+  currentConv: null,     // open conversation id
+  msgChannel: null,      // realtime channel for open conversation
+  globalChannel: null,   // realtime channel for lists
+  friends: new Set(),    // friend user ids
+  pendingIn: [],         // incoming friend requests
+};
+
+</script>
+  <script>
+/* ============================================================
+   Kopi Chat — shared utilities
+   ============================================================ */
+(function () {
+  const A = window.App;
+
+  // ---- DOM helpers ----
+  A.$ = (sel, root = document) => root.querySelector(sel);
+  A.$$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+  A.esc = (s) =>
+    String(s ?? '').replace(/[&<>"']/g, (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+    );
+
+  // ---- Toast ----
+  let toastTimer;
+  A.toast = (msg, type = '') => {
+    const el = A.$('#toast');
+    el.textContent = msg;
+    el.className = 'toast show ' + type;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => (el.className = 'toast'), 2600);
+  };
+
+  // ---- Modal ----
+  A.openModal = (html) => {
+    A.$('#modalCard').innerHTML = html;
+    A.$('#modal').classList.remove('hidden');
+  };
+  A.closeModal = () => A.$('#modal').classList.add('hidden');
+
+  // ---- Time formatting ----
+  A.fmtTime = (iso) => {
+    const d = new Date(iso);
+    return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  };
+  A.fmtListTime = (iso) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const now = new Date();
+    const sameDay = d.toDateString() === now.toDateString();
+    if (sameDay) return A.fmtTime(iso);
+    return d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  };
+
+  // ---- Premium helpers ----
+  A.isPremium = (p) => {
+    if (!p) return false;
+    if (p.is_developer) return true;
+    if (!p.is_premium) return false;
+    if (!p.premium_until) return true;
+    return new Date(p.premium_until).getTime() > Date.now();
+  };
+
+  // ---- Avatar rendering ----
+  const GRADIENTS = {
+    'coffee-1': 'linear-gradient(135deg,#8b5e3c,#c69c6d)',
+    'coffee-2': 'linear-gradient(135deg,#6f4e37,#a67b5b)',
+    'coffee-3': 'linear-gradient(135deg,#4b3621,#7b5e3b)',
+    'coffee-4': 'linear-gradient(135deg,#a0522d,#d2a679)',
+    'coffee-5': 'linear-gradient(135deg,#3e2723,#8d6e63)',
+    'coffee-6': 'linear-gradient(135deg,#5d4037,#bcaaa4)',
+    'coffee-7': 'linear-gradient(135deg,#c8a26b,#7a4f2a)',
+    'coffee-8': 'linear-gradient(135deg,#b08968,#ede0d4)',
+    // premium
+    'prem-gold': 'linear-gradient(135deg,#f7d774,#b8860b,#fff3c4)',
+    'prem-aurora': 'linear-gradient(135deg,#43cea2,#185a9d,#ff6fd8)',
+    'prem-mocha-glow': 'linear-gradient(135deg,#2c1810,#d4a373,#2c1810)',
+    'prem-velvet': 'linear-gradient(135deg,#6a040f,#370617,#9d4edd)',
+  };
+  A.AVATAR_PRESETS = Object.keys(GRADIENTS);
+  A.PREMIUM_AVATARS = ['prem-gold', 'prem-aurora', 'prem-mocha-glow', 'prem-velvet'];
+  A.BORDERS = ['none', 'cream', 'double', 'gold', 'gradient', 'spin'];
+  A.PREMIUM_BORDERS = ['gold', 'gradient', 'spin'];
+  A.THEMES = ['mocha', 'latte', 'espresso', 'caramel', 'affogato', 'tiramisu', 'coldbrew'];
+  A.PREMIUM_THEMES = ['caramel', 'affogato', 'tiramisu', 'coldbrew'];
+  A.FONTS = ['inter', 'nunito', 'grotesk', 'playfair', 'lobster'];
+  A.PREMIUM_FONTS = ['grotesk', 'playfair', 'lobster'];
+
+  A.avatarHTML = (profile, size = 44, withFriendBadge = false) => {
+    const preset = profile?.avatar_preset || 'coffee-1';
+    const border = profile?.border_style || 'none';
+    const initial = A.esc((profile?.display_name || profile?.username || '?').trim().charAt(0).toUpperCase());
+    const inner = profile?.avatar_url
+      ? `<img src="${A.esc(profile.avatar_url)}" alt="" />`
+      : `<span class="av__initial">${initial}</span>`;
+    const bg = profile?.avatar_url ? '' : `style="background:${GRADIENTS[preset] || GRADIENTS['coffee-1']}"`;
+    const friend = withFriendBadge && profile && A.friends.has(profile.id)
+      ? `<span class="av__friend" title="Teman">☕</span>` : '';
+    const dev = profile?.is_developer ? `<span class="av__dev" title="Developer">★</span>` : '';
+    return `<span class="av av--b-${A.esc(border)}" style="width:${size}px;height:${size}px" ${bg}>${inner}${friend}${dev}</span>`;
+  };
+
+  // ---- Profile cache ----
+  A.cacheProfile = (p) => { if (p) A.profileCache[p.id] = p; return p; };
+
+  A.getProfiles = async (ids) => {
+    const missing = [...new Set(ids)].filter((id) => id && !A.profileCache[id]);
+    if (missing.length) {
+      const { data } = await A.sb.from('profiles').select('*').in('id', missing);
+      (data || []).forEach(A.cacheProfile);
+    }
+    return ids.map((id) => A.profileCache[id]).filter(Boolean);
+  };
+
+  // ---- Activity logging (best effort) ----
+  A.logActivity = async (action, detail = {}) => {
+    try {
+      if (A.user) await A.sb.from('activity_log').insert({ user_id: A.user.id, action, detail });
+    } catch (_) {}
+  };
+
+  // ---- Switch the visible pane in the middle panel ----
+  A.setView = (view) => {
+    A.$$('.pane').forEach((p) => p.classList.toggle('hidden', p.dataset.pane !== view));
+    A.$$('.rail__btn').forEach((b) => b.classList.toggle('is-active', b.dataset.view === view));
+    if (view === 'chats') A.loadChats?.();
+    if (view === 'friends') A.loadFriendsView?.();
+    if (view === 'groups') A.loadGroups?.();
+    if (view === 'settings') A.renderSettings?.();
+    if (view === 'developer') A.renderDeveloper?.();
+  };
+})();
+
+</script>
+  <script>
+/* ============================================================
+   Kopi Chat — authentication (email/password + Google OAuth)
+   ============================================================ */
+(function () {
+  const A = window.App;
+  let mode = 'login';
+
+  function wireAuthUI() {
+    A.$$('.auth__tab').forEach((tab) =>
+      tab.addEventListener('click', () => {
+        mode = tab.dataset.tab;
+        A.$$('.auth__tab').forEach((t) => t.classList.toggle('is-active', t === tab));
+        A.$$('[data-only]').forEach((el) =>
+          el.classList.toggle('hidden', el.dataset.only !== mode)
+        );
+        A.$('#authSubmit').textContent = mode === 'login' ? 'Masuk' : 'Daftar';
+        A.$('#authErr').textContent = '';
+      })
+    );
+    // initial visibility of register-only fields
+    A.$$('[data-only]').forEach((el) => el.classList.toggle('hidden', el.dataset.only !== mode));
+
+    A.$('#authForm').addEventListener('submit', onSubmit);
+
+    A.$$('.btn--social').forEach((btn) =>
+      btn.addEventListener('click', () => oauth(btn.dataset.provider))
+    );
+  }
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    const email = A.$('#fEmail').value.trim();
+    const pass = A.$('#fPass').value;
+    const name = A.$('#fName').value.trim();
+    const errEl = A.$('#authErr');
+    const btn = A.$('#authSubmit');
+    errEl.textContent = '';
+    btn.disabled = true;
+    btn.textContent = '...';
+    try {
+      if (mode === 'register') {
+        const { error } = await A.sb.auth.signUp({
+          email,
+          password: pass,
+          options: { data: { full_name: name || email.split('@')[0] } },
+        });
+        if (error) throw error;
+        // If email confirmation is OFF (default for this build), a session is created.
+        const { data: s } = await A.sb.auth.getSession();
+        if (!s.session) {
+          A.toast('Akun dibuat. Cek email untuk verifikasi, lalu masuk.', 'ok');
+          mode = 'login';
+        }
+      } else {
+        const { error } = await A.sb.auth.signInWithPassword({ email, password: pass });
+        if (error) throw error;
+      }
+    } catch (err) {
+      errEl.textContent = translateAuthError(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = mode === 'login' ? 'Masuk' : 'Daftar';
+    }
+  }
+
+  async function oauth(provider) {
+    const { error } = await A.sb.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: window.location.href.split('#')[0] },
+    });
+    if (error) A.toast('Login ' + provider + ' gagal: ' + error.message, 'err');
+  }
+
+  function translateAuthError(m = '') {
+    if (/Invalid login/i.test(m)) return 'Email atau kata sandi salah.';
+    if (/already registered|already been/i.test(m)) return 'Email sudah terdaftar. Silakan masuk.';
+    if (/Password should/i.test(m)) return 'Kata sandi minimal 6 karakter.';
+    if (/provider is not enabled/i.test(m)) return 'Provider belum diaktifkan di Supabase dashboard.';
+    return m || 'Terjadi kesalahan.';
+  }
+
+  A.signOut = async () => {
+    A.teardownRealtime?.();
+    await A.sb.auth.signOut();
+    location.reload();
+  };
+
+  A.wireAuthUI = wireAuthUI;
+})();
+
+</script>
+  <script>
+/* ============================================================
+   Kopi Chat — friends: search by ID/username, requests, accept
+   ============================================================ */
+(function () {
+  const A = window.App;
+
+  function wire() {
+    A.$('#friendSearchBtn').addEventListener('click', doSearch);
+    A.$('#friendSearch').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') doSearch();
+    });
+  }
+
+  async function doSearch() {
+    const q = A.$('#friendSearch').value.trim();
+    const box = A.$('#searchResult');
+    if (!q) { box.innerHTML = ''; return; }
+    box.innerHTML = '<div class="muted">Mencari...</div>';
+
+    let query = A.sb.from('profiles').select('*').neq('id', A.user.id).limit(10);
+    if (/^\d+$/.test(q)) query = query.eq('user_number', Number(q));
+    else query = query.ilike('username', `%${q}%`);
+
+    const { data, error } = await query;
+    if (error) { box.innerHTML = `<div class="muted">Error: ${A.esc(error.message)}</div>`; return; }
+    if (!data.length) { box.innerHTML = '<div class="muted">Tidak ada pengguna ditemukan.</div>'; return; }
+
+    data.forEach(A.cacheProfile);
+    box.innerHTML = data.map(renderSearchRow).join('');
+    box.querySelectorAll('[data-add]').forEach((b) =>
+      b.addEventListener('click', () => addFriend(b.dataset.add))
+    );
+    box.querySelectorAll('[data-chat]').forEach((b) =>
+      b.addEventListener('click', () => A.openDMWith(b.dataset.chat))
+    );
+  }
+
+  function renderSearchRow(p) {
+    const isFriend = A.friends.has(p.id);
+    const action = isFriend
+      ? `<button class="btn btn--sm" data-chat="${p.id}">Chat</button>`
+      : `<button class="btn btn--sm btn--primary" data-add="${p.id}">+ Tambah teman</button>`;
+    return `<div class="urow">
+      ${A.avatarHTML(p, 44, true)}
+      <div class="urow__meta">
+        <div class="urow__name">${A.esc(p.display_name)} ${A.isPremium(p) ? '<span class="prem-tag">PRO</span>' : ''}</div>
+        <div class="urow__sub">@${A.esc(p.username)} · ID ${p.user_number}</div>
+      </div>
+      ${action}
+    </div>`;
+  }
+
+  async function addFriend(targetId) {
+    // If they already requested me -> accept instead.
+    const reverse = A.pendingIn.find((r) => r.requester_id === targetId);
+    if (reverse) return respond(reverse.id, true);
+
+    const { error } = await A.sb.from('friendships').insert({
+      requester_id: A.user.id,
+      addressee_id: targetId,
+      status: 'pending',
+    });
+    if (error) {
+      if (/duplicate key/i.test(error.message)) A.toast('Permintaan sudah dikirim.', '');
+      else A.toast('Gagal: ' + error.message, 'err');
+      return;
+    }
+    A.toast('Permintaan teman dikirim ☕', 'ok');
+    doSearch();
+  }
+
+  async function respond(reqId, accept) {
+    const { error } = await A.sb.rpc('respond_friend', { p_request_id: reqId, p_accept: accept });
+    if (error) { A.toast('Gagal: ' + error.message, 'err'); return; }
+    A.toast(accept ? 'Sekarang kalian berteman ☕' : 'Permintaan ditolak.', accept ? 'ok' : '');
+    await A.refreshFriends();
+    A.loadFriendsView();
+  }
+  A.respondFriend = respond;
+
+  // Load friend ids + incoming requests into state.
+  A.refreshFriends = async () => {
+    A.friends = new Set();
+    A.pendingIn = [];
+    const { data } = await A.sb
+      .from('friendships')
+      .select('*')
+      .or(`requester_id.eq.${A.user.id},addressee_id.eq.${A.user.id}`);
+    (data || []).forEach((f) => {
+      if (f.status === 'accepted') {
+        A.friends.add(f.requester_id === A.user.id ? f.addressee_id : f.requester_id);
+      } else if (f.status === 'pending' && f.addressee_id === A.user.id) {
+        A.pendingIn.push(f);
+      }
+    });
+    const badge = A.$('#reqBadge');
+    badge.textContent = A.pendingIn.length;
+    badge.classList.toggle('hidden', A.pendingIn.length === 0);
+  };
+
+  A.loadFriendsView = async () => {
+    await A.refreshFriends();
+
+    // requests
+    const reqEl = A.$('#requestList');
+    if (!A.pendingIn.length) reqEl.innerHTML = '<div class="muted small">Tidak ada permintaan.</div>';
+    else {
+      const profs = await A.getProfiles(A.pendingIn.map((r) => r.requester_id));
+      reqEl.innerHTML = A.pendingIn
+        .map((r) => {
+          const p = A.profileCache[r.requester_id];
+          if (!p) return '';
+          return `<div class="urow">
+            ${A.avatarHTML(p, 44)}
+            <div class="urow__meta"><div class="urow__name">${A.esc(p.display_name)}</div>
+            <div class="urow__sub">@${A.esc(p.username)} · ID ${p.user_number}</div></div>
+            <div class="urow__actions">
+              <button class="btn btn--sm btn--primary" data-acc="${r.id}">Terima</button>
+              <button class="btn btn--sm" data-rej="${r.id}">Tolak</button>
+            </div></div>`;
+        })
+        .join('');
+      reqEl.querySelectorAll('[data-acc]').forEach((b) =>
+        b.addEventListener('click', () => respond(b.dataset.acc, true)));
+      reqEl.querySelectorAll('[data-rej]').forEach((b) =>
+        b.addEventListener('click', () => respond(b.dataset.rej, false)));
+    }
+
+    // friends list
+    const listEl = A.$('#friendsList');
+    const ids = [...A.friends];
+    if (!ids.length) { listEl.innerHTML = '<div class="muted small">Belum punya teman. Cari di atas ☝️</div>'; return; }
+    await A.getProfiles(ids);
+    listEl.innerHTML = ids
+      .map((id) => {
+        const p = A.profileCache[id];
+        if (!p) return '';
+        return `<div class="urow" data-chat="${id}">
+          ${A.avatarHTML(p, 44, true)}
+          <div class="urow__meta"><div class="urow__name">${A.esc(p.display_name)}</div>
+          <div class="urow__sub">@${A.esc(p.username)} · ID ${p.user_number}</div></div>
+          <button class="btn btn--sm" data-open="${id}">Chat</button></div>`;
+      })
+      .join('');
+    listEl.querySelectorAll('[data-open]').forEach((b) =>
+      b.addEventListener('click', () => A.openDMWith(b.dataset.open)));
+  };
+
+  A.wireFriends = wire;
+})();
+
+</script>
+  <script>
+/* ============================================================
+   Kopi Chat — conversations, realtime messages, media, delete
+   ============================================================ */
+(function () {
+  const A = window.App;
+  let myDeletions = new Set(); // message ids hidden for me in the open conversation
+  let loadedMsgs = [];
+
+  /* ---------------- CHAT LIST ---------------- */
+  A.loadChats = async () => {
+    const listEl = A.$('#chatList');
+    const { data: mem } = await A.sb
+      .from('conversation_members')
+      .select('conversation_id')
+      .eq('user_id', A.user.id);
+    const convIds = (mem || []).map((m) => m.conversation_id);
+    if (!convIds.length) {
+      listEl.innerHTML = '<div class="muted small">Belum ada chat. Cari teman lalu mulai ngobrol ☕</div>';
+      A.conversations = [];
+      return;
+    }
+
+    const { data: convs } = await A.sb.from('conversations').select('*').in('id', convIds);
+    const { data: allMembers } = await A.sb
+      .from('conversation_members')
+      .select('conversation_id,user_id')
+      .in('conversation_id', convIds);
+
+    // last message per conversation
+    const metas = await Promise.all(
+      (convs || []).map(async (c) => {
+        const { data: last } = await A.sb
+          .from('messages')
+          .select('*')
+          .eq('conversation_id', c.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        const lm = last && last[0];
+        let title = c.name, otherId = null;
+        if (c.type === 'dm') {
+          otherId = (allMembers || []).find(
+            (m) => m.conversation_id === c.id && m.user_id !== A.user.id
+          )?.user_id;
+        }
+        return { ...c, otherId, lastMsg: lm, lastTime: lm?.created_at || c.created_at, title };
+      })
+    );
+
+    // resolve DM peer profiles
+    await A.getProfiles(metas.filter((m) => m.otherId).map((m) => m.otherId));
+    metas.sort((a, b) => new Date(b.lastTime) - new Date(a.lastTime));
+    A.conversations = metas;
+    renderChatList(metas);
+  };
+
+  function renderChatList(metas, filter = '') {
+    const listEl = A.$('#chatList');
+    const rows = metas
+      .map((c) => {
+        let name, avatarHtml, peer = null;
+        if (c.type === 'dm') {
+          peer = A.profileCache[c.otherId];
+          name = peer ? peer.display_name : 'Pengguna';
+          avatarHtml = A.avatarHTML(peer || {}, 48, true);
+        } else {
+          name = c.name || c.type;
+          avatarHtml = `<span class="av av--group" style="width:48px;height:48px">${c.type === 'channel' ? '📢' : c.type === 'community' ? '🏘️' : '👥'}</span>`;
+        }
+        if (filter && !name.toLowerCase().includes(filter)) return '';
+        const preview = c.lastMsg ? previewText(c.lastMsg) : '<i>Belum ada pesan</i>';
+        return `<div class="row" data-conv="${c.id}">
+          ${avatarHtml}
+          <div class="row__meta">
+            <div class="row__top"><span class="row__name">${A.esc(name)}</span>
+              <span class="row__time">${A.fmtListTime(c.lastTime)}</span></div>
+            <div class="row__preview">${preview}</div>
+          </div></div>`;
+      })
+      .join('');
+    listEl.innerHTML = rows || '<div class="muted small">Tidak ada hasil.</div>';
+    listEl.querySelectorAll('[data-conv]').forEach((r) =>
+      r.addEventListener('click', () => A.openConversation(r.dataset.conv))
+    );
+  }
+
+  function previewText(m) {
+    if (m.deleted_for_all) return '<i>Pesan dihapus</i>';
+    const mine = m.sender_id === A.user.id ? 'Kamu: ' : '';
+    if (m.type === 'image') return mine + '📷 Foto';
+    if (m.type === 'video') return mine + '🎬 Video';
+    if (m.type === 'file') return mine + '📎 File';
+    return mine + A.esc((m.content || '').slice(0, 40));
+  }
+
+  A.wireChatSearch = () => {
+    A.$('#chatSearch').addEventListener('input', (e) =>
+      renderChatList(A.conversations, e.target.value.trim().toLowerCase())
+    );
+    A.$('#newChatBtn').addEventListener('click', () => A.setView('friends'));
+    A.$('#chatBack').addEventListener('click', closeConversation);
+  };
+
+  /* ---------------- OPEN A DM ---------------- */
+  A.openDMWith = async (otherId) => {
+    const { data, error } = await A.sb.rpc('start_dm', { other_id: otherId });
+    if (error) { A.toast('Gagal membuka chat: ' + error.message, 'err'); return; }
+    await A.loadChats();
+    A.openConversation(data);
+  };
+
+  /* ---------------- OPEN CONVERSATION ---------------- */
+  A.openConversation = async (convId) => {
+    A.currentConv = convId;
+    A.$('#mainEmpty').classList.add('hidden');
+    A.$('#chatView').classList.remove('hidden');
+    A.$('#messages').innerHTML = '<div class="muted small" style="padding:20px">Memuat...</div>';
+
+    let conv = A.conversations.find((c) => c.id === convId);
+    if (!conv) {
+      const { data } = await A.sb.from('conversations').select('*').eq('id', convId).single();
+      conv = data;
+    }
+    await renderPeerHeader(conv);
+
+    // my deletions
+    const { data: del } = await A.sb
+      .from('message_deletions')
+      .select('message_id')
+      .eq('user_id', A.user.id);
+    myDeletions = new Set((del || []).map((d) => d.message_id));
+
+    // messages
+    const { data: msgs } = await A.sb
+      .from('messages')
+      .select('*')
+      .eq('conversation_id', convId)
+      .order('created_at', { ascending: true });
+    loadedMsgs = (msgs || []).filter((m) => !myDeletions.has(m.id));
+    await A.getProfiles(loadedMsgs.map((m) => m.sender_id));
+    paintMessages();
+
+    subscribe(convId);
+  };
+
+  async function renderPeerHeader(conv) {
+    const el = A.$('#chatPeer');
+    if (conv.type === 'dm') {
+      const peer = A.profileCache[conv.otherId] || (await A.getProfiles([conv.otherId]))[0];
+      el.innerHTML = peer
+        ? `${A.avatarHTML(peer, 40, true)}<div><div class="peer__name">${A.esc(peer.display_name)} ${A.isPremium(peer) ? '<span class="prem-tag">PRO</span>' : ''}</div><div class="peer__sub">@${A.esc(peer.username)} · ID ${peer.user_number}</div></div>`
+        : 'Pengguna';
+    } else {
+      el.innerHTML = `<span class="av av--group" style="width:40px;height:40px">${conv.type === 'channel' ? '📢' : conv.type === 'community' ? '🏘️' : '👥'}</span><div><div class="peer__name">${A.esc(conv.name)}</div><div class="peer__sub">${conv.type}</div></div>`;
+    }
+  }
+
+  function closeConversation() {
+    A.currentConv = null;
+    A.$('#chatView').classList.add('hidden');
+    A.$('#mainEmpty').classList.remove('hidden');
+    if (A.msgChannel) { A.sb.removeChannel(A.msgChannel); A.msgChannel = null; }
+  }
+  A.closeConversation = closeConversation;
+
+  /* ---------------- RENDER MESSAGES ---------------- */
+  function paintMessages() {
+    const box = A.$('#messages');
+    box.innerHTML = loadedMsgs.map(renderMessage).join('') || '<div class="day-sep">Mulai percakapan ☕</div>';
+    box.scrollTop = box.scrollHeight;
+    attachLongPress();
+    box.querySelectorAll('[data-img]').forEach((img) =>
+      img.addEventListener('click', () => A.openViewer(img.dataset.img, 'image', img.dataset.name))
+    );
+    box.querySelectorAll('[data-vid]').forEach((v) =>
+      v.addEventListener('click', (e) => { if (e.target.tagName !== 'VIDEO') A.openViewer(v.dataset.vid, 'video', v.dataset.name); })
+    );
+  }
+
+  function renderMessage(m) {
+    const mine = m.sender_id === A.user.id;
+    const sender = A.profileCache[m.sender_id];
+    if (m.deleted_for_all) {
+      return `<div class="msg ${mine ? 'mine' : ''}" data-id="${m.id}">
+        <div class="bubble bubble--deleted">🚫 Pesan ini dihapus</div></div>`;
+    }
+    let body = '';
+    if (m.type === 'image') {
+      body = `<img class="bubble-media" src="${A.esc(m.media_url)}" data-img="${A.esc(m.media_url)}" data-name="${A.esc(m.media_name || 'image')}" alt="" />`;
+    } else if (m.type === 'video') {
+      body = `<div class="bubble-media" data-vid="${A.esc(m.media_url)}" data-name="${A.esc(m.media_name || 'video')}"><video src="${A.esc(m.media_url)}" controls preload="metadata"></video></div>`;
+    } else if (m.type === 'file') {
+      body = `<a class="bubble-file" href="${A.esc(m.media_url)}" download="${A.esc(m.media_name || 'file')}" target="_blank">📎 <span>${A.esc(m.media_name || 'File')}</span><small>${fmtSize(m.media_size)}</small></a>`;
+    } else {
+      body = `<div class="bubble-text">${linkify(m.content)}</div>`;
+    }
+    const senderTag = !mine && sender ? `<div class="bubble__sender">${A.esc(sender.display_name)}</div>` : '';
+    return `<div class="msg ${mine ? 'mine' : ''}" data-id="${m.id}" data-mine="${mine}">
+      <div class="bubble">${senderTag}${body}<span class="bubble__time">${A.fmtTime(m.created_at)}</span></div></div>`;
+  }
+
+  function linkify(text) {
+    const esc = A.esc(text);
+    return esc.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" class="ln">$1</a>');
+  }
+  function fmtSize(b) {
+    if (!b) return '';
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b / 1024).toFixed(0) + ' KB';
+    return (b / 1048576).toFixed(1) + ' MB';
+  }
+
+  /* ---------------- REALTIME ---------------- */
+  function subscribe(convId) {
+    if (A.msgChannel) A.sb.removeChannel(A.msgChannel);
+    A.msgChannel = A.sb
+      .channel('conv:' + convId)
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${convId}` },
+        async (payload) => {
+          const m = payload.new;
+          if (myDeletions.has(m.id) || loadedMsgs.some((x) => x.id === m.id)) return;
+          if (!A.profileCache[m.sender_id]) await A.getProfiles([m.sender_id]);
+          loadedMsgs.push(m);
+          const box = A.$('#messages');
+          const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 120;
+          box.insertAdjacentHTML('beforeend', renderMessage(m));
+          attachLongPress();
+          bindMedia(box.lastElementChild);
+          if (nearBottom || m.sender_id === A.user.id) box.scrollTop = box.scrollHeight;
+          A.loadChats();
+        })
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${convId}` },
+        (payload) => {
+          const idx = loadedMsgs.findIndex((x) => x.id === payload.new.id);
+          if (idx >= 0) {
+            loadedMsgs[idx] = payload.new;
+            const node = A.$(`.msg[data-id="${payload.new.id}"]`);
+            if (node) node.outerHTML = renderMessage(payload.new);
+            attachLongPress();
+          }
+        })
+      .on('postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${convId}` },
+        (payload) => {
+          loadedMsgs = loadedMsgs.filter((x) => x.id !== payload.old.id);
+          A.$(`.msg[data-id="${payload.old.id}"]`)?.remove();
+        })
+      .subscribe();
+  }
+
+  function bindMedia(node) {
+    node.querySelectorAll('[data-img]').forEach((img) =>
+      img.addEventListener('click', () => A.openViewer(img.dataset.img, 'image', img.dataset.name)));
+    node.querySelectorAll('[data-vid]').forEach((v) =>
+      v.addEventListener('click', (e) => { if (e.target.tagName !== 'VIDEO') A.openViewer(v.dataset.vid, 'video', v.dataset.name); }));
+  }
+
+  /* ---------------- SEND ---------------- */
+  A.wireComposer = () => {
+    const input = A.$('#msgInput');
+    input.addEventListener('input', () => {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 140) + 'px';
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendText(); }
+    });
+    A.$('#sendBtn').addEventListener('click', sendText);
+    A.$('#attachBtn').addEventListener('click', () => A.$('#fileInput').click());
+    A.$('#fileInput').addEventListener('change', sendFile);
+  };
+
+  async function sendText() {
+    const input = A.$('#msgInput');
+    const content = input.value.trim();
+    if (!content || !A.currentConv) return;
+    input.value = '';
+    input.style.height = 'auto';
+    const { error } = await A.sb.from('messages').insert({
+      conversation_id: A.currentConv, sender_id: A.user.id, content, type: 'text',
+    });
+    if (error) { A.toast('Gagal kirim: ' + error.message, 'err'); input.value = content; }
+  }
+
+  async function sendFile(e) {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file || !A.currentConv) return;
+    if (file.size > 100 * 1024 * 1024) { A.toast('Maks 100MB.', 'err'); return; }
+    A.toast('Mengunggah...', '');
+    const ext = file.name.split('.').pop();
+    const path = `${A.user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error: upErr } = await A.sb.storage.from('media').upload(path, file, {
+      contentType: file.type, upsert: false,
+    });
+    if (upErr) { A.toast('Upload gagal: ' + upErr.message, 'err'); return; }
+    const { data: pub } = A.sb.storage.from('media').getPublicUrl(path);
+    let type = 'file';
+    if (file.type.startsWith('image/')) type = 'image';
+    else if (file.type.startsWith('video/')) type = 'video';
+    const { error } = await A.sb.from('messages').insert({
+      conversation_id: A.currentConv, sender_id: A.user.id, type,
+      media_url: pub.publicUrl, media_name: file.name, media_size: file.size, content: '',
+    });
+    if (error) A.toast('Gagal kirim: ' + error.message, 'err');
+    else A.toast('Terkirim ☕', 'ok');
+  }
+
+  /* ---------------- LONG-PRESS / DELETE ---------------- */
+  function attachLongPress() {
+    A.$$('#messages .msg').forEach((node) => {
+      if (node._lp) return;
+      node._lp = true;
+      let timer;
+      const start = (e) => {
+        timer = setTimeout(() => openCtx(node, e), 450);
+      };
+      const cancel = () => clearTimeout(timer);
+      node.addEventListener('mousedown', start);
+      node.addEventListener('touchstart', start, { passive: true });
+      node.addEventListener('mouseup', cancel);
+      node.addEventListener('mouseleave', cancel);
+      node.addEventListener('touchend', cancel);
+      node.addEventListener('touchmove', cancel);
+      node.addEventListener('contextmenu', (e) => { e.preventDefault(); openCtx(node, e); });
+    });
+  }
+
+  function openCtx(node, e) {
+    const id = node.dataset.id;
+    const mine = node.dataset.mine === 'true';
+    const menu = A.$('#ctxMenu');
+    const opts = [`<button data-act="me">🗑️ Hapus untuk saya</button>`];
+    if (mine) opts.push(`<button data-act="all">🔥 Hapus untuk semua</button>`);
+    menu.innerHTML = opts.join('');
+    menu.classList.remove('hidden');
+    const x = (e.touches?.[0]?.clientX ?? e.clientX ?? 100);
+    const y = (e.touches?.[0]?.clientY ?? e.clientY ?? 100);
+    menu.style.left = Math.min(x, window.innerWidth - 220) + 'px';
+    menu.style.top = Math.min(y, window.innerHeight - 120) + 'px';
+    menu.querySelector('[data-act="me"]').onclick = () => { deleteForMe(id); closeCtx(); };
+    const allBtn = menu.querySelector('[data-act="all"]');
+    if (allBtn) allBtn.onclick = () => { deleteForAll(id); closeCtx(); };
+  }
+  function closeCtx() { A.$('#ctxMenu').classList.add('hidden'); }
+  A.closeCtx = closeCtx;
+
+  async function deleteForMe(id) {
+    myDeletions.add(id);
+    loadedMsgs = loadedMsgs.filter((m) => m.id !== id);
+    A.$(`.msg[data-id="${id}"]`)?.remove();
+    const { error } = await A.sb.from('message_deletions').insert({ message_id: id, user_id: A.user.id });
+    if (error && !/duplicate/i.test(error.message)) A.toast('Gagal: ' + error.message, 'err');
+  }
+
+  async function deleteForAll(id) {
+    const { error } = await A.sb.from('messages').update({ deleted_for_all: true }).eq('id', id);
+    if (error) { A.toast('Gagal: ' + error.message, 'err'); return; }
+    // realtime UPDATE will refresh the bubble for everyone
+  }
+
+  /* ---------------- IMAGE / VIDEO VIEWER ---------------- */
+  A.openViewer = (url, type, name) => {
+    const v = A.$('#viewer');
+    A.$('#viewerStage').innerHTML =
+      type === 'video'
+        ? `<video src="${A.esc(url)}" controls autoplay></video>`
+        : `<img src="${A.esc(url)}" alt="" />`;
+    const dl = A.$('#viewerDl');
+    dl.href = url;
+    dl.setAttribute('download', name || 'kopi-media');
+    v.classList.remove('hidden');
+  };
+  A.closeViewer = () => {
+    A.$('#viewer').classList.add('hidden');
+    A.$('#viewerStage').innerHTML = '';
+  };
+
+  A.teardownRealtime = () => {
+    if (A.msgChannel) { A.sb.removeChannel(A.msgChannel); A.msgChannel = null; }
+    if (A.globalChannel) { A.sb.removeChannel(A.globalChannel); A.globalChannel = null; }
+  };
+})();
+
+</script>
+  <script>
+/* ============================================================
+   Kopi Chat — groups, communities & channels
+   ============================================================ */
+(function () {
+  const A = window.App;
+
+  A.wireGroups = () => {
+    A.$('#newGroupBtn').addEventListener('click', openCreateModal);
+  };
+
+  A.loadGroups = async () => {
+    const el = A.$('#groupList');
+    const { data: mem } = await A.sb
+      .from('conversation_members')
+      .select('conversation_id')
+      .eq('user_id', A.user.id);
+    const ids = (mem || []).map((m) => m.conversation_id);
+    let convs = [];
+    if (ids.length) {
+      const { data } = await A.sb
+        .from('conversations')
+        .select('*')
+        .in('id', ids)
+        .in('type', ['group', 'community', 'channel']);
+      convs = data || [];
+    }
+    if (!convs.length) {
+      el.innerHTML = '<div class="muted small">Belum ada grup/komunitas. Buat dengan tombol ＋</div>';
+      return;
+    }
+    el.innerHTML = convs
+      .map((c) => `<div class="row" data-conv="${c.id}">
+        <span class="av av--group" style="width:48px;height:48px">${c.type === 'channel' ? '📢' : c.type === 'community' ? '🏘️' : '👥'}</span>
+        <div class="row__meta"><div class="row__top"><span class="row__name">${A.esc(c.name)}</span></div>
+        <div class="row__preview">${c.type}</div></div></div>`)
+      .join('');
+    el.querySelectorAll('[data-conv]').forEach((r) =>
+      r.addEventListener('click', () => { A.setView('chats'); A.openConversation(r.dataset.conv); }));
+  };
+
+  function openCreateModal() {
+    A.openModal(`
+      <h3>Buat baru</h3>
+      <div class="seg" id="grpType">
+        <button class="is-active" data-t="group">👥 Grup</button>
+        <button data-t="community">🏘️ Komunitas</button>
+        <button data-t="channel">📢 Saluran</button>
+      </div>
+      <div class="field"><label>Nama</label><input id="grpName" placeholder="Nama grup/komunitas/saluran" /></div>
+      <div class="field"><label>Tambah teman (opsional)</label><div id="grpFriends" class="chips"></div></div>
+      <div class="modal__actions">
+        <button class="btn" data-close>Batal</button>
+        <button class="btn btn--primary" id="grpCreate">Buat</button>
+      </div>`);
+
+    let type = 'group';
+    A.$('#grpType').querySelectorAll('button').forEach((b) =>
+      b.addEventListener('click', () => {
+        type = b.dataset.t;
+        A.$('#grpType').querySelectorAll('button').forEach((x) => x.classList.toggle('is-active', x === b));
+      }));
+
+    // friend selector
+    const selected = new Set();
+    const chips = A.$('#grpFriends');
+    const fids = [...A.friends];
+    if (!fids.length) chips.innerHTML = '<span class="muted small">Belum punya teman.</span>';
+    fids.forEach((id) => {
+      const p = A.profileCache[id];
+      if (!p) return;
+      const chip = document.createElement('button');
+      chip.className = 'chip';
+      chip.textContent = p.display_name;
+      chip.onclick = () => {
+        if (selected.has(id)) { selected.delete(id); chip.classList.remove('on'); }
+        else { selected.add(id); chip.classList.add('on'); }
+      };
+      chips.appendChild(chip);
+    });
+
+    A.$('#grpCreate').addEventListener('click', async () => {
+      const name = A.$('#grpName').value.trim();
+      if (!name) { A.toast('Nama wajib diisi.', 'err'); return; }
+      const { data, error } = await A.sb.rpc('create_group', {
+        p_name: name, p_type: type, p_member_ids: [...selected],
+      });
+      if (error) { A.toast('Gagal: ' + error.message, 'err'); return; }
+      A.closeModal();
+      A.toast('Berhasil dibuat ☕', 'ok');
+      await A.loadGroups();
+      A.setView('chats');
+      A.openConversation(data);
+    });
+  }
+})();
+
+</script>
+  <script>
+/* ============================================================
+   Kopi Chat — settings: theme, font, avatar, border, username
+   ============================================================ */
+(function () {
+  const A = window.App;
+
+  const THEME_LABELS = {
+    mocha: 'Mocha', latte: 'Latte', espresso: 'Espresso',
+    caramel: 'Caramel Gold', affogato: 'Affogato Glass', tiramisu: 'Tiramisu', coldbrew: 'Cold Brew Neon',
+  };
+  const FONT_LABELS = { inter: 'Inter', nunito: 'Nunito', grotesk: 'Space Grotesk', playfair: 'Playfair', lobster: 'Lobster' };
+  const BORDER_LABELS = { none: 'Polos', cream: 'Cream', double: 'Double', gold: 'Gold Glow', gradient: 'Gradient Ring', spin: 'Animated Spin' };
+
+  // Apply look to the document and persist locally for instant load.
+  A.applyAppearance = (p) => {
+    document.documentElement.dataset.theme = p.theme || 'mocha';
+    document.documentElement.dataset.font = p.font || 'inter';
+    localStorage.setItem('kopi_theme', p.theme || 'mocha');
+    localStorage.setItem('kopi_font', p.font || 'inter');
+  };
+
+  A.renderSettings = () => {
+    const p = A.me;
+    const prem = A.isPremium(p);
+    const body = A.$('#settingsBody');
+
+    const swatch = (key, active, locked, label, cls) =>
+      `<button class="opt ${cls} ${active ? 'on' : ''} ${locked ? 'locked' : ''}" data-val="${key}">
+        <span class="opt__label">${label}${locked ? ' 🔒' : ''}</span></button>`;
+
+    body.innerHTML = `
+      <div class="profilecard">
+        ${A.avatarHTML(p, 72)}
+        <div>
+          <div class="profilecard__name">${A.esc(p.display_name)} ${prem ? '<span class="prem-tag">PRO</span>' : ''}</div>
+          <div class="profilecard__id">@${A.esc(p.username)} · ID ${p.user_number}</div>
+          ${p.premium_until ? `<div class="muted small">Premium s/d ${new Date(p.premium_until).toLocaleDateString('id-ID')}</div>` : ''}
+        </div>
+      </div>
+
+      <div class="seth">Username</div>
+      <div class="search"><input id="setUsername" value="${A.esc(p.username)}" /><button class="btn btn--sm btn--primary" id="saveUsername">Simpan</button></div>
+
+      <div class="seth">Tema ${prem ? '' : '<span class="muted small">(beberapa khusus PRO)</span>'}</div>
+      <div class="opts">${A.THEMES.map((t) =>
+        swatch(t, p.theme === t, A.PREMIUM_THEMES.includes(t) && !prem, THEME_LABELS[t], 'opt--theme th-' + t)).join('')}</div>
+
+      <div class="seth">Font</div>
+      <div class="opts">${A.FONTS.map((f) =>
+        swatch(f, p.font === f, A.PREMIUM_FONTS.includes(f) && !prem, FONT_LABELS[f], 'opt--font fn-' + f)).join('')}</div>
+
+      <div class="seth">Avatar</div>
+      <div class="opts opts--av">
+        ${A.AVATAR_PRESETS.map((a) => {
+          const locked = A.PREMIUM_AVATARS.includes(a) && !prem;
+          return `<button class="avopt ${p.avatar_preset === a && !p.avatar_url ? 'on' : ''} ${locked ? 'locked' : ''}" data-av="${a}">
+            ${A.avatarHTML({ avatar_preset: a, display_name: p.display_name }, 48)}${locked ? '<span class="lk">🔒</span>' : ''}</button>`;
+        }).join('')}
+        <button class="avopt avopt--upload" id="uploadAv">⬆<small>Upload</small></button>
+        <input type="file" id="avFile" accept="image/*" hidden />
+      </div>
+
+      <div class="seth">Bingkai avatar</div>
+      <div class="opts">${A.BORDERS.map((b) =>
+        swatch(b, p.border_style === b, A.PREMIUM_BORDERS.includes(b) && !prem, BORDER_LABELS[b], 'opt--border')).join('')}</div>
+
+      <div class="setfoot">
+        <button class="btn btn--block" id="signOutBtn">Keluar</button>
+        ${!prem ? '<p class="muted small" style="text-align:center;margin-top:10px">Upgrade ke PRO untuk membuka tema, font, avatar & bingkai eksklusif. Minta developer mengaktifkan akun PRO kamu.</p>' : ''}
+      </div>`;
+
+    wireSettings(prem);
+  };
+
+  function wireSettings(prem) {
+    // username
+    A.$('#saveUsername').addEventListener('click', async () => {
+      const u = A.$('#setUsername').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+      if (u.length < 3) { A.toast('Username minimal 3 karakter (a-z, 0-9, _).', 'err'); return; }
+      const { error } = await A.sb.from('profiles').update({ username: u }).eq('id', A.user.id);
+      if (error) { A.toast(/duplicate/i.test(error.message) ? 'Username sudah dipakai.' : error.message, 'err'); return; }
+      A.me.username = u; A.toast('Username diperbarui ☕', 'ok'); A.renderSettings(); A.refreshRailAvatar();
+    });
+
+    // themes
+    A.$$('.opt--theme').forEach((b) => b.addEventListener('click', () => {
+      if (b.classList.contains('locked')) return upsell();
+      update({ theme: b.dataset.val });
+    }));
+    // fonts
+    A.$$('.opt--font').forEach((b) => b.addEventListener('click', () => {
+      if (b.classList.contains('locked')) return upsell();
+      update({ font: b.dataset.val });
+    }));
+    // borders
+    A.$$('.opt--border').forEach((b) => b.addEventListener('click', () => {
+      if (b.classList.contains('locked')) return upsell();
+      update({ border_style: b.dataset.val });
+    }));
+    // avatar presets
+    A.$$('[data-av]').forEach((b) => b.addEventListener('click', () => {
+      if (b.classList.contains('locked')) return upsell();
+      update({ avatar_preset: b.dataset.av, avatar_url: null });
+    }));
+    // upload avatar
+    A.$('#uploadAv').addEventListener('click', () => A.$('#avFile').click());
+    A.$('#avFile').addEventListener('change', uploadAvatar);
+
+    A.$('#signOutBtn').addEventListener('click', A.signOut);
+  }
+
+  async function update(patch) {
+    const { error } = await A.sb.from('profiles').update(patch).eq('id', A.user.id);
+    if (error) { A.toast('Gagal: ' + error.message, 'err'); return; }
+    Object.assign(A.me, patch);
+    A.applyAppearance(A.me);
+    A.renderSettings();
+    A.refreshRailAvatar();
+  }
+
+  async function uploadAvatar(e) {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { A.toast('Maks 10MB.', 'err'); return; }
+    A.toast('Mengunggah avatar...', '');
+    const ext = file.name.split('.').pop();
+    const path = `${A.user.id}/avatar_${Date.now()}.${ext}`;
+    const { error: upErr } = await A.sb.storage.from('avatars').upload(path, file, { contentType: file.type, upsert: true });
+    if (upErr) { A.toast('Gagal: ' + upErr.message, 'err'); return; }
+    const { data: pub } = A.sb.storage.from('avatars').getPublicUrl(path);
+    await update({ avatar_url: pub.publicUrl });
+    A.toast('Avatar diperbarui ☕', 'ok');
+  }
+
+  function upsell() {
+    A.openModal(`<h3>✨ Fitur PRO</h3>
+      <p class="muted">Item ini eksklusif untuk akun premium. Hubungi developer untuk mengaktifkan akun PRO kamu dan nikmati tema, font, avatar & bingkai keren.</p>
+      <div class="modal__actions"><button class="btn btn--primary" data-close>Mengerti</button></div>`);
+  }
+
+  A.refreshRailAvatar = () => {
+    A.$('#railAvatar').innerHTML = A.avatarHTML(A.me, 38);
+  };
+})();
+
+</script>
+  <script>
+/* ============================================================
+   Kopi Chat — developer console (only visible to ID 1 / is_developer)
+   ============================================================ */
+(function () {
+  const A = window.App;
+
+  A.renderDeveloper = async () => {
+    if (!A.me?.is_developer) {
+      A.$('#devBody').innerHTML = '<div class="muted">Akses ditolak.</div>';
+      return;
+    }
+    A.$('#devBody').innerHTML = `
+      <div class="seg" id="devTabs">
+        <button class="is-active" data-t="users">👥 Pengguna</button>
+        <button data-t="activity">📜 Aktivitas</button>
+        <button data-t="monitor">🔍 Pantau Chat</button>
+      </div>
+      <div id="devContent"><div class="muted small">Memuat...</div></div>`;
+    A.$('#devTabs').querySelectorAll('button').forEach((b) =>
+      b.addEventListener('click', () => {
+        A.$('#devTabs').querySelectorAll('button').forEach((x) => x.classList.toggle('is-active', x === b));
+        tab(b.dataset.t);
+      }));
+    tab('users');
+  };
+
+  async function tab(name) {
+    if (name === 'users') return usersTab();
+    if (name === 'activity') return activityTab();
+    if (name === 'monitor') return monitorTab();
+  }
+
+  async function usersTab() {
+    const el = A.$('#devContent');
+    const { data, error } = await A.sb.from('profiles').select('*').order('user_number', { ascending: true });
+    if (error) { el.innerHTML = `<div class="muted">${A.esc(error.message)}</div>`; return; }
+    el.innerHTML = data.map((p) => {
+      const prem = A.isPremium(p);
+      return `<div class="devrow ${p.is_banned ? 'banned' : ''}">
+        ${A.avatarHTML(p, 40)}
+        <div class="devrow__meta">
+          <div class="devrow__name">${A.esc(p.display_name)} ${p.is_developer ? '<span class="prem-tag">DEV</span>' : ''} ${prem ? '<span class="prem-tag">PRO</span>' : ''} ${p.is_banned ? '<span class="ban-tag">BANNED</span>' : ''}</div>
+          <div class="devrow__sub">@${A.esc(p.username)} · ID ${p.user_number}</div>
+        </div>
+        <div class="devrow__actions">
+          <select data-days="${p.id}">
+            <option value="">Permanen</option>
+            <option value="7">1 minggu</option>
+            <option value="30">1 bulan</option>
+            <option value="365">1 tahun</option>
+          </select>
+          <button class="btn btn--xs btn--primary" data-prem-on="${p.id}">PRO on</button>
+          <button class="btn btn--xs" data-prem-off="${p.id}">PRO off</button>
+          <button class="btn btn--xs ${p.is_banned ? '' : 'btn--danger'}" data-ban="${p.id}" data-banned="${p.is_banned}">${p.is_banned ? 'Unban' : 'Ban'}</button>
+        </div></div>`;
+    }).join('');
+
+    el.querySelectorAll('[data-prem-on]').forEach((b) => b.addEventListener('click', async () => {
+      const id = b.dataset.premOn;
+      const days = A.$(`[data-days="${id}"]`).value;
+      const { error } = await A.sb.rpc('dev_set_premium', { target: id, enable: true, duration_days: days ? Number(days) : null });
+      if (error) A.toast(error.message, 'err'); else { A.toast('PRO diaktifkan ✨', 'ok'); usersTab(); }
+    }));
+    el.querySelectorAll('[data-prem-off]').forEach((b) => b.addEventListener('click', async () => {
+      const { error } = await A.sb.rpc('dev_set_premium', { target: b.dataset.premOff, enable: false, duration_days: null });
+      if (error) A.toast(error.message, 'err'); else { A.toast('PRO dimatikan.', ''); usersTab(); }
+    }));
+    el.querySelectorAll('[data-ban]').forEach((b) => b.addEventListener('click', async () => {
+      const banned = b.dataset.banned === 'true';
+      const { error } = await A.sb.rpc('dev_set_ban', { target: b.dataset.ban, banned: !banned });
+      if (error) A.toast(error.message, 'err'); else { A.toast(!banned ? 'Akun diban.' : 'Ban dicabut.', ''); usersTab(); }
+    }));
+  }
+
+  async function activityTab() {
+    const el = A.$('#devContent');
+    const { data } = await A.sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(100);
+    if (!data?.length) { el.innerHTML = '<div class="muted small">Belum ada aktivitas.</div>'; return; }
+    await A.getProfiles(data.map((a) => a.user_id).filter(Boolean));
+    el.innerHTML = data.map((a) => {
+      const p = A.profileCache[a.user_id];
+      return `<div class="logrow"><b>${A.esc(p?.display_name || a.user_id || 'system')}</b>
+        <span class="logrow__act">${A.esc(a.action)}</span>
+        <span class="muted small">${new Date(a.created_at).toLocaleString('id-ID')}</span>
+        <code>${A.esc(JSON.stringify(a.detail))}</code></div>`;
+    }).join('');
+  }
+
+  async function monitorTab() {
+    const el = A.$('#devContent');
+    const { data } = await A.sb.from('messages').select('*').order('created_at', { ascending: false }).limit(150);
+    if (!data?.length) { el.innerHTML = '<div class="muted small">Belum ada pesan.</div>'; return; }
+    await A.getProfiles(data.map((m) => m.sender_id));
+    el.innerHTML = `<p class="muted small">Menampilkan 150 pesan terbaru lintas semua percakapan (pemantauan keamanan).</p>` +
+      data.map((m) => {
+        const p = A.profileCache[m.sender_id];
+        let c = m.deleted_for_all ? '<i>[dihapus]</i>'
+          : m.type !== 'text' ? `[${m.type}] ${A.esc(m.media_name || '')}` : A.esc(m.content);
+        return `<div class="logrow"><b>${A.esc(p?.display_name || '?')}</b>
+          <span class="muted small">${new Date(m.created_at).toLocaleString('id-ID')}</span>
+          <div>${c}</div></div>`;
+      }).join('');
+  }
+})();
+
+</script>
+  <script>
+/* ============================================================
+   Kopi Chat — bootstrap & session
+   ============================================================ */
+(function () {
+  const A = window.App;
+
+  // Apply last-known appearance instantly (avoids flash before profile loads)
+  document.documentElement.dataset.theme = localStorage.getItem('kopi_theme') || 'mocha';
+  document.documentElement.dataset.font = localStorage.getItem('kopi_font') || 'inter';
+
+  function wireGlobalUI() {
+    // rail navigation
+    A.$$('.rail__btn, .rail__avatar').forEach((b) =>
+      b.addEventListener('click', () => b.dataset.view && A.setView(b.dataset.view)));
+
+    // modal close
+    A.$('#modal').addEventListener('click', (e) => {
+      if (e.target.matches('[data-close]') || e.target.classList.contains('modal__backdrop')) A.closeModal();
+    });
+    // viewer close
+    A.$('#viewer').addEventListener('click', (e) => {
+      if (e.target.matches('[data-close-viewer]') || e.target.id === 'viewer') A.closeViewer();
+    });
+    // context menu close on outside click / scroll / escape
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#ctxMenu')) A.closeCtx?.();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { A.closeCtx?.(); A.closeViewer?.(); A.closeModal?.(); }
+    });
+
+    A.wireAuthUI();
+    A.wireFriends();
+    A.wireChatSearch();
+    A.wireComposer();
+    A.wireGroups();
+  }
+
+  async function loadMyProfile() {
+    const { data, error } = await A.sb.from('profiles').select('*').eq('id', A.user.id).maybeSingle();
+    if (error) { A.toast('Gagal memuat profil: ' + error.message, 'err'); return null; }
+    if (!data) {
+      // trigger should have created it; retry once after a short delay
+      await new Promise((r) => setTimeout(r, 800));
+      const retry = await A.sb.from('profiles').select('*').eq('id', A.user.id).maybeSingle();
+      return retry.data;
+    }
+    return data;
+  }
+
+  let entering = false;
+  async function enterApp() {
+    if (entering) return;
+    entering = true;
+    try { await enterAppInner(); } finally { entering = false; }
+  }
+
+  async function enterAppInner() {
+    A.me = await loadMyProfile();
+    if (!A.me) { A.toast('Profil tidak ditemukan.', 'err'); return; }
+    if (A.me.is_banned) {
+      await A.sb.auth.signOut();
+      showAuth();
+      A.toast('Akun kamu diblokir oleh developer.', 'err');
+      return;
+    }
+    A.cacheProfile(A.me);
+    A.applyAppearance(A.me);
+
+    A.$('#authScreen').classList.add('hidden');
+    A.$('#app').classList.remove('hidden');
+    A.$('.rail__btn--dev').classList.toggle('hidden', !A.me.is_developer);
+    A.refreshRailAvatar();
+
+    await A.refreshFriends();
+    A.setView('chats');
+    subscribeGlobal();
+    A.logActivity('login', {});
+    // keep last_seen fresh
+    A.sb.from('profiles').update({ last_seen: new Date().toISOString() }).eq('id', A.user.id);
+  }
+
+  function showAuth() {
+    A.$('#app').classList.add('hidden');
+    A.$('#authScreen').classList.remove('hidden');
+  }
+
+  function subscribeGlobal() {
+    if (A.globalChannel) A.sb.removeChannel(A.globalChannel);
+    A.globalChannel = A.sb
+      .channel('global:' + A.user.id)
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'friendships', filter: `addressee_id=eq.${A.user.id}` },
+        async () => { await A.refreshFriends(); if (currentView() === 'friends') A.loadFriendsView(); })
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'conversation_members', filter: `user_id=eq.${A.user.id}` },
+        () => { if (currentView() === 'chats') A.loadChats(); })
+      .subscribe();
+  }
+
+  function currentView() {
+    return A.$$('.pane').find((p) => !p.classList.contains('hidden'))?.dataset.pane;
+  }
+
+  // ---- Auth state ----
+  A.sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'INITIAL_SESSION') return; // boot() handles the first load
+    if (session?.user) {
+      // avoid re-entering on token refresh if already loaded
+      if (A.me && A.user && A.user.id === session.user.id) return;
+      A.user = session.user;
+      enterApp();
+    } else if (event === 'SIGNED_OUT') {
+      A.user = null; A.me = null;
+      showAuth();
+    }
+  });
+
+  // ---- Initial boot ----
+  (async function boot() {
+    wireGlobalUI();
+    const { data } = await A.sb.auth.getSession();
+    if (data.session?.user) {
+      A.user = data.session.user;
+      await enterApp();
+    } else {
+      showAuth();
+    }
+  })();
+})();
+
+</script>
 </body>
 </html>

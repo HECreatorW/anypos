@@ -1,7 +1,12 @@
-# ☕ Kopi Chat — Realtime Chat (Supabase)
+# ☕ AnyPos — Realtime Chat (Supabase)
 
 A WhatsApp‑style realtime chat web app with a **coffee theme**, built on **Supabase**
-(Postgres + Auth + Realtime + Storage). Pure HTML/CSS/JS — no build step.
+(Postgres + Auth + Realtime + Storage). Pure HTML/CSS/JS.
+
+> **Upload to GitHub = just `index.html`.** It is fully self‑contained (all CSS &
+> JS are inlined), so there are no `css/`/`js/` 404 errors. The `css/` and `js/`
+> folders are the editable source — after changing them, run `./build.ps1` to
+> regenerate `index.html`.
 
 > Backend is already provisioned on the connected Supabase project
 > `ebdvczthxwyhyaqeqvrd`. The schema, RLS policies, storage buckets and realtime
