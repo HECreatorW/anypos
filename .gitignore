@@ -1,0 +1,10 @@
+# Kopi Chat
+.DS_Store
+Thumbs.db
+node_modules/
+*.log
+
+# Never commit secret keys. config.js only holds the PUBLIC anon key.
+.env
+.env.*
+secret*.js

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="mocha" data-font="inter">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kopi Chat — Realtime Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Playfair+Display:wght@600;700&family=Lobster&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/themes.css" />
+</head>
+<body>
+  <!-- ============ AUTH SCREEN ============ -->
+  <section id="authScreen" class="auth">
+    <div class="auth__card">
+      <div class="auth__brand">
+        <div class="auth__logo">☕</div>
+        <h1>Kopi Chat</h1>
+        <p>Ngobrol realtime, sehangat secangkir kopi.</p>
+      </div>
+
+      <div class="auth__tabs">
+        <button class="auth__tab is-active" data-tab="login">Masuk</button>
+        <button class="auth__tab" data-tab="register">Daftar</button>
+      </div>
+
+      <form id="authForm" class="auth__form" autocomplete="on">
+        <div class="field" data-only="register">
+          <label>Nama tampilan</label>
+          <input type="text" id="fName" placeholder="Nama kamu" />
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="fEmail" placeholder="kamu@email.com" required />
+        </div>
+        <div class="field">
+          <label>Kata sandi</label>
+          <input type="password" id="fPass" placeholder="Minimal 6 karakter" minlength="6" required />
+        </div>
+        <button type="submit" class="btn btn--primary btn--block" id="authSubmit">Masuk</button>
+        <p class="auth__err" id="authErr"></p>
+      </form>
+
+      <div class="auth__divider"><span>atau</span></div>
+
+      <div class="auth__social">
+        <button class="btn btn--social" data-provider="google">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.3-.97 2.4-2.06 3.13v2.6h3.33C20.7 18 21.8 15.3 21.8 12.2c0-.7-.06-1.37-.18-2.02z"/><path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.62-2.43l-3.33-2.6c-.92.62-2.1.98-3.29.98-2.53 0-4.67-1.7-5.43-4H3.13v2.6A9.99 9.99 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.57 13.95c-.2-.6-.31-1.24-.31-1.9s.11-1.3.31-1.9V7.55H3.13A10 10 0 0 0 2 12.05c0 1.6.38 3.12 1.13 4.5z"/><path fill="#4285F4" d="M12 6.15c1.47 0 2.78.5 3.82 1.5l2.86-2.86C16.97 3.2 14.7 2.3 12 2.3A9.99 9.99 0 0 0 3.13 7.55l3.44 2.6c.76-2.3 2.9-4 5.43-4z"/></svg>
+          Lanjut dengan Google
+        </button>
+      </div>
+      <p class="auth__note">Refresh tidak akan keluar otomatis — sesi kamu tersimpan aman.</p>
+    </div>
+    <div class="auth__bg"></div>
+  </section>
+
+  <!-- ============ MAIN APP ============ -->
+  <section id="app" class="app hidden">
+    <!-- LEFT RAIL -->
+    <nav class="rail">
+      <div class="rail__top">
+        <button class="rail__btn is-active" data-view="chats" title="Chat">
+          <svg viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>
+        </button>
+        <button class="rail__btn" data-view="friends" title="Teman">
+          <svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm-8 0a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-2.7 0-8 1.3-8 4v3h10v-3c0-1 .4-1.9 1-2.6A14 14 0 0 0 8 13zm8 0a13 13 0 0 0-1.8.1A5 5 0 0 1 18 17v3h6v-3c0-2.7-5.3-4-8-4z"/></svg>
+          <span class="rail__badge hidden" id="reqBadge">0</span>
+        </button>
+        <button class="rail__btn" data-view="groups" title="Grup & Komunitas">
+          <svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-3 0-9 1.5-9 4.5V21h18v-2.5c0-3-6-4.5-9-4.5z"/></svg>
+        </button>
+      </div>
+      <div class="rail__bottom">
+        <button class="rail__btn rail__btn--dev hidden" data-view="developer" title="Developer">
+          <svg viewBox="0 0 24 24"><path d="M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6zm5.2 0L19.2 12l-4.6-4.6L16 6l6 6-6 6z"/></svg>
+        </button>
+        <button class="rail__btn" data-view="settings" title="Pengaturan">
+          <svg viewBox="0 0 24 24"><path d="M19.4 13a7.8 7.8 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4L4.6 11a7.8 7.8 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
+        </button>
+        <button class="rail__avatar" id="railAvatar" data-view="settings" title="Profil"></button>
+      </div>
+    </nav>
+
+    <!-- MIDDLE PANEL -->
+    <aside class="panel">
+      <!-- CHATS VIEW -->
+      <div class="pane" data-pane="chats">
+        <header class="pane__head">
+          <h2>Chat</h2>
+          <button class="icon-btn" id="newChatBtn" title="Chat baru">＋</button>
+        </header>
+        <div class="search"><input type="text" id="chatSearch" placeholder="Cari chat..." /></div>
+        <div class="list" id="chatList"></div>
+      </div>
+
+      <!-- FRIENDS VIEW -->
+      <div class="pane hidden" data-pane="friends">
+        <header class="pane__head"><h2>Teman</h2></header>
+        <div class="search">
+          <input type="text" id="friendSearch" placeholder="Cari ID atau username..." />
+          <button class="btn btn--sm" id="friendSearchBtn">Cari</button>
+        </div>
+        <div id="searchResult" class="search-result"></div>
+        <div class="subhead">Permintaan teman</div>
+        <div class="list" id="requestList"></div>
+        <div class="subhead">Teman kamu</div>
+        <div class="list" id="friendsList"></div>
+      </div>
+
+      <!-- GROUPS VIEW -->
+      <div class="pane hidden" data-pane="groups">
+        <header class="pane__head">
+          <h2>Grup & Komunitas</h2>
+          <button class="icon-btn" id="newGroupBtn" title="Buat baru">＋</button>
+        </header>
+        <div class="list" id="groupList"></div>
+      </div>
+
+      <!-- SETTINGS VIEW -->
+      <div class="pane hidden" data-pane="settings">
+        <header class="pane__head"><h2>Pengaturan</h2></header>
+        <div class="settings" id="settingsBody"></div>
+      </div>
+
+      <!-- DEVELOPER VIEW -->
+      <div class="pane hidden" data-pane="developer">
+        <header class="pane__head"><h2>Developer</h2></header>
+        <div class="dev" id="devBody"></div>
+      </div>
+    </aside>
+
+    <!-- MAIN CHAT AREA -->
+    <main class="main" id="mainArea">
+      <div class="main__empty" id="mainEmpty">
+        <div class="main__empty-icon">☕</div>
+        <h2>Kopi Chat</h2>
+        <p>Pilih percakapan untuk mulai mengobrol.<br/>Semua pesan kamu aman dengan Row Level Security.</p>
+        <div class="main__lock">🔒 Database terlindungi RLS per pengguna</div>
+      </div>
+
+      <div class="chatview hidden" id="chatView">
+        <header class="chatview__head">
+          <button class="icon-btn chatview__back" id="chatBack">←</button>
+          <div class="chatview__peer" id="chatPeer"></div>
+        </header>
+        <div class="chatview__body" id="messages"></div>
+        <div class="chatview__reply hidden" id="replyBar"></div>
+        <footer class="chatview__input">
+          <button class="icon-btn" id="attachBtn" title="Lampirkan">📎</button>
+          <input type="file" id="fileInput" hidden accept="image/*,video/*,*/*" />
+          <textarea id="msgInput" rows="1" placeholder="Tulis pesan..."></textarea>
+          <button class="icon-btn icon-btn--send" id="sendBtn" title="Kirim">➤</button>
+        </footer>
+      </div>
+    </main>
+  </section>
+
+  <!-- ============ MODALS ============ -->
+  <div class="modal hidden" id="modal">
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__card" id="modalCard"></div>
+  </div>
+
+  <div class="viewer hidden" id="viewer">
+    <button class="viewer__close" data-close-viewer>✕</button>
+    <a class="viewer__dl" id="viewerDl" download>⬇ Unduh</a>
+    <div class="viewer__stage" id="viewerStage"></div>
+  </div>
+
+  <div class="ctxmenu hidden" id="ctxMenu"></div>
+  <div class="toast" id="toast"></div>
+
+  <!-- ============ SCRIPTS ============ -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/friends.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/groups.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/developer.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
