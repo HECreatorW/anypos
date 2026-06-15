@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="mocha" data-font="inter">
+<html lang="id" data-theme="mocha" data-font="inter" data-chat-style="classic">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -143,16 +143,72 @@ a { color: var(--accent); }
 .av__friend { position: absolute; bottom: -2px; right: -2px; font-size: .7rem; background: var(--panel); border-radius: 50%; padding: 1px; line-height: 1; }
 .av__dev { position: absolute; top: -3px; right: -3px; font-size: .7rem; color: #ffd76b; }
 /* borders */
-.av--b-cream { box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px #efe2d2; }
+.av--b-cream { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px #efe2d2; }
 .av--b-double { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--accent), 0 0 0 6px var(--panel), 0 0 0 8px var(--accent2); }
-.av--b-gold { box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px #f6d36b, 0 0 14px #f6d36b88; }
-.av--b-gradient { box-shadow: 0 0 0 3px var(--panel); outline: 3px solid transparent; background-clip: padding-box; }
-.av--b-gradient::after { content:''; position:absolute; inset:-6px; border-radius:50%; background: conic-gradient(#f6d36b,#ff6fd8,#43cea2,#f6d36b); z-index:-1; }
+.av--b-sunset { box-shadow: 0 0 0 3px var(--panel); }
+.av--b-sunset::after { content:''; position:absolute; inset:-5px; border-radius:50%; background: conic-gradient(from 210deg, #ff8a00, #ff4d6d, #ffb347, #ff8a00); z-index:-1; }
+.av--b-gold { box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px #f6d36b, 0 0 14px #f6d36b88; animation: glowGold 2.6s ease-in-out infinite; }
+@keyframes glowGold {
+  0%,100% { box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px #f6d36b, 0 0 10px #f6d36b55; }
+  50% { box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px #ffe9a3, 0 0 22px #f6d36bcc; }
+}
+.av--b-gradient { box-shadow: 0 0 0 3px var(--panel); }
+.av--b-gradient::after { content:''; position:absolute; inset:-5px; border-radius:50%; background: conic-gradient(#f6d36b,#ff6fd8,#43cea2,#5ab0ff,#f6d36b); z-index:-1; }
+.av--b-spin { box-shadow: 0 0 0 3px var(--panel); }
 .av--b-spin::after { content:''; position:absolute; inset:-5px; border-radius:50%; background: conic-gradient(from 0deg, var(--accent), #ff6fd8, #43cea2, var(--accent)); z-index:-1; animation: spin 3s linear infinite; }
+.av--b-neon { box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px #38e8ff; animation: glowNeon 1.9s ease-in-out infinite; }
+@keyframes glowNeon {
+  0%,100% { box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px #38e8ff, 0 0 10px #38e8ff88; }
+  50% { box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px #c66bff, 0 0 24px #c66bffcc; }
+}
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .prem-tag { font-size: .6rem; background: linear-gradient(120deg,#f6d36b,#e0a045); color:#3a2300; padding: 1px 6px; border-radius: 6px; font-weight: 800; vertical-align: middle; }
 .ban-tag { font-size: .6rem; background: #5b2020; color: #ffd9d9; padding: 1px 6px; border-radius: 6px; }
+
+/* ============ CHAT BUBBLE STYLES (selectable in settings) ============ */
+[data-chat-style="rounded"] .bubble { border-radius: 18px; }
+[data-chat-style="rounded"] .msg.mine .bubble { border-bottom-right-radius: 6px; }
+[data-chat-style="rounded"] .msg:not(.mine) .bubble { border-bottom-left-radius: 6px; }
+
+[data-chat-style="tail"] .bubble { border-radius: 10px; }
+[data-chat-style="tail"] .msg.mine .bubble { border-top-right-radius: 3px; }
+[data-chat-style="tail"] .msg:not(.mine) .bubble { border-top-left-radius: 3px; }
+[data-chat-style="tail"] .msg.mine .bubble::before { content:''; position:absolute; top:0; right:-7px; border:7px solid transparent; border-top-color: var(--bubble-mine); border-right:0; }
+[data-chat-style="tail"] .msg:not(.mine) .bubble::before { content:''; position:absolute; top:0; left:-7px; border:7px solid transparent; border-top-color: var(--bubble-other); border-left:0; }
+
+[data-chat-style="minimal"] .bubble { background: transparent !important; border: 1px solid var(--line); box-shadow: none; }
+
+[data-chat-style="gold"] .msg.mine .bubble { background: linear-gradient(135deg,#6b4e16,#a9802a) !important; border:1px solid #f6d36b66; box-shadow: 0 0 12px #f6d36b33; }
+[data-chat-style="gold"] .msg:not(.mine) .bubble { border:1px solid #f6d36b2e; }
+
+[data-chat-style="neon"] .bubble { border:1px solid #38e8ff44; }
+[data-chat-style="neon"] .msg.mine .bubble { background: linear-gradient(135deg,#16493a,#1f6f8c) !important; border-color:#38e8ff99; box-shadow:0 0 14px #38e8ff4d; }
+[data-chat-style="neon"] .msg:not(.mine) .bubble { box-shadow:0 0 10px #38e8ff22; }
+
+[data-chat-style="gradient"] .msg.mine .bubble { background: linear-gradient(135deg,#7c3aed,#ec4899) !important; color:#fff; }
+[data-chat-style="gradient"] .msg:not(.mine) .bubble { background: linear-gradient(135deg,#334155,#475569) !important; color:#fff; }
+
+[data-chat-style="glass"] .bubble { background: rgba(255,255,255,.08) !important; backdrop-filter: blur(8px); border:1px solid rgba(255,255,255,.18); box-shadow:0 4px 18px rgba(0,0,0,.25); }
+[data-chat-style="glass"] .msg.mine .bubble { background: rgba(205,155,106,.24) !important; }
+
+/* chat-style picker previews in settings */
+.opts--chat { display:grid; grid-template-columns: repeat(2,1fr); gap:10px; }
+.chatopt { display:flex; flex-direction:column; gap:7px; align-items:stretch; padding:10px; border:1px solid var(--line); border-radius:12px; background:var(--surface); cursor:pointer; }
+.chatopt.on { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+.chatopt.locked { opacity:.6; }
+.chatopt__label { font-size:.78rem; text-align:center; }
+.chatprev { display:flex; flex-direction:column; gap:4px; }
+.cb { font-size:.66rem; padding:4px 8px; border-radius:8px; color:var(--text); max-width:75%; line-height:1.2; }
+.cb--in { align-self:flex-start; background:var(--bubble-other); }
+.cb--out { align-self:flex-end; background:var(--bubble-mine); }
+.chatopt[data-cs="rounded"] .cb { border-radius:14px; }
+.chatopt[data-cs="minimal"] .cb { background:transparent; border:1px solid var(--line); }
+.chatopt[data-cs="gold"] .cb--out { background:linear-gradient(135deg,#6b4e16,#a9802a); }
+.chatopt[data-cs="neon"] .cb--out { background:linear-gradient(135deg,#16493a,#1f6f8c); box-shadow:0 0 8px #38e8ff66; }
+.chatopt[data-cs="gradient"] .cb--out { background:linear-gradient(135deg,#7c3aed,#ec4899); color:#fff; }
+.chatopt[data-cs="gradient"] .cb--in { background:linear-gradient(135deg,#334155,#475569); color:#fff; }
+.chatopt[data-cs="glass"] .cb { background:rgba(255,255,255,.13); border:1px solid rgba(255,255,255,.2); }
 
 /* ============ MAIN / CHAT ============ */
 .main { position: relative; display: flex; flex-direction: column; background: var(--chat-bg); overflow: hidden; }
@@ -437,9 +493,9 @@ a { color: var(--accent); }
           <button class="btn btn--sm" id="friendSearchBtn">Cari</button>
         </div>
         <div id="searchResult" class="search-result"></div>
-        <div class="subhead">Permintaan teman</div>
+        <div class="subhead" id="subReq">Permintaan teman</div>
         <div class="list" id="requestList"></div>
-        <div class="subhead">Teman kamu</div>
+        <div class="subhead" id="subFriends">Teman kamu</div>
         <div class="list" id="friendsList"></div>
       </div>
 
@@ -619,8 +675,10 @@ window.App = {
   };
   A.AVATAR_PRESETS = Object.keys(GRADIENTS);
   A.PREMIUM_AVATARS = ['prem-gold', 'prem-aurora', 'prem-mocha-glow', 'prem-velvet'];
-  A.BORDERS = ['none', 'cream', 'double', 'gold', 'gradient', 'spin'];
-  A.PREMIUM_BORDERS = ['gold', 'gradient', 'spin'];
+  A.BORDERS = ['none', 'cream', 'double', 'sunset', 'gold', 'gradient', 'spin', 'neon'];
+  A.PREMIUM_BORDERS = ['gold', 'gradient', 'spin', 'neon'];
+  A.CHAT_STYLES = ['classic', 'rounded', 'tail', 'minimal', 'gold', 'neon', 'gradient', 'glass'];
+  A.PREMIUM_CHAT_STYLES = ['gold', 'neon', 'gradient', 'glass'];
   A.THEMES = ['mocha', 'latte', 'espresso', 'caramel', 'affogato', 'tiramisu', 'coldbrew'];
   A.PREMIUM_THEMES = ['caramel', 'affogato', 'tiramisu', 'coldbrew'];
   A.FONTS = ['inter', 'nunito', 'grotesk', 'playfair', 'lobster'];
@@ -868,9 +926,10 @@ window.App = {
   A.loadFriendsView = async () => {
     await A.refreshFriends();
 
-    // requests
+    // requests (hide the section header entirely when empty)
     const reqEl = A.$('#requestList');
-    if (!A.pendingIn.length) reqEl.innerHTML = '<div class="muted small">Tidak ada permintaan.</div>';
+    if (A.$('#subReq')) A.$('#subReq').style.display = A.pendingIn.length ? '' : 'none';
+    if (!A.pendingIn.length) reqEl.innerHTML = '';
     else {
       const profs = await A.getProfiles(A.pendingIn.map((r) => r.requester_id));
       reqEl.innerHTML = A.pendingIn
@@ -893,10 +952,11 @@ window.App = {
         b.addEventListener('click', () => respond(b.dataset.rej, false)));
     }
 
-    // friends list
+    // friends list (hide header when empty)
     const listEl = A.$('#friendsList');
     const ids = [...A.friends];
-    if (!ids.length) { listEl.innerHTML = '<div class="muted small">Belum punya teman. Cari di atas ☝️</div>'; return; }
+    if (A.$('#subFriends')) A.$('#subFriends').style.display = ids.length ? '' : 'none';
+    if (!ids.length) { listEl.innerHTML = ''; return; }
     await A.getProfiles(ids);
     listEl.innerHTML = ids
       .map((id) => {
@@ -935,7 +995,7 @@ window.App = {
       .eq('user_id', A.user.id);
     const convIds = (mem || []).map((m) => m.conversation_id);
     if (!convIds.length) {
-      listEl.innerHTML = '<div class="muted small">Belum ada chat. Cari teman lalu mulai ngobrol ☕</div>';
+      listEl.innerHTML = '';
       A.conversations = [];
       return;
     }
@@ -1414,14 +1474,17 @@ window.App = {
     caramel: 'Caramel Gold', affogato: 'Affogato Glass', tiramisu: 'Tiramisu', coldbrew: 'Cold Brew Neon',
   };
   const FONT_LABELS = { inter: 'Inter', nunito: 'Nunito', grotesk: 'Space Grotesk', playfair: 'Playfair', lobster: 'Lobster' };
-  const BORDER_LABELS = { none: 'Polos', cream: 'Cream', double: 'Double', gold: 'Gold Glow', gradient: 'Gradient Ring', spin: 'Animated Spin' };
+  const BORDER_LABELS = { none: 'Polos', cream: 'Cream', double: 'Double', sunset: 'Sunset', gold: 'Gold Glow', gradient: 'Gradient Ring', spin: 'Animated Spin', neon: 'Neon Pulse' };
+  const CHAT_LABELS = { classic: 'Klasik', rounded: 'Membulat', tail: 'Ekor', minimal: 'Minimal', gold: 'Emas', neon: 'Neon', gradient: 'Gradient', glass: 'Kaca' };
 
   // Apply look to the document and persist locally for instant load.
   A.applyAppearance = (p) => {
     document.documentElement.dataset.theme = p.theme || 'mocha';
     document.documentElement.dataset.font = p.font || 'inter';
+    document.documentElement.dataset.chatStyle = p.chat_style || 'classic';
     localStorage.setItem('kopi_theme', p.theme || 'mocha');
     localStorage.setItem('kopi_font', p.font || 'inter');
+    localStorage.setItem('kopi_chat', p.chat_style || 'classic');
   };
 
   A.renderSettings = () => {
@@ -1469,6 +1532,14 @@ window.App = {
       <div class="opts">${A.BORDERS.map((b) =>
         swatch(b, p.border_style === b, A.PREMIUM_BORDERS.includes(b) && !prem, BORDER_LABELS[b], 'opt--border')).join('')}</div>
 
+      <div class="seth">Border chat ${prem ? '' : '<span class="muted small">(beberapa khusus PRO)</span>'}</div>
+      <div class="opts opts--chat">${A.CHAT_STYLES.map((c) => {
+        const locked = A.PREMIUM_CHAT_STYLES.includes(c) && !prem;
+        return `<button class="chatopt ${p.chat_style === c ? 'on' : ''} ${locked ? 'locked' : ''}" data-chat="${c}" data-cs="${c}">
+          <span class="chatprev"><span class="cb cb--in">Hai</span><span class="cb cb--out">Halo!</span></span>
+          <span class="chatopt__label">${CHAT_LABELS[c]}${locked ? ' 🔒' : ''}</span></button>`;
+      }).join('')}</div>
+
       <div class="setfoot">
         <button class="btn btn--block" id="signOutBtn">Keluar</button>
         ${!prem ? '<p class="muted small" style="text-align:center;margin-top:10px">Upgrade ke PRO untuk membuka tema, font, avatar & bingkai eksklusif. Minta developer mengaktifkan akun PRO kamu.</p>' : ''}
@@ -1501,6 +1572,11 @@ window.App = {
     A.$$('.opt--border').forEach((b) => b.addEventListener('click', () => {
       if (b.classList.contains('locked')) return upsell();
       update({ border_style: b.dataset.val });
+    }));
+    // chat border styles
+    A.$$('[data-chat]').forEach((b) => b.addEventListener('click', () => {
+      if (b.classList.contains('locked')) return upsell();
+      update({ chat_style: b.dataset.chat });
     }));
     // avatar presets
     A.$$('[data-av]').forEach((b) => b.addEventListener('click', () => {
@@ -1667,6 +1743,7 @@ window.App = {
   // Apply last-known appearance instantly (avoids flash before profile loads)
   document.documentElement.dataset.theme = localStorage.getItem('kopi_theme') || 'mocha';
   document.documentElement.dataset.font = localStorage.getItem('kopi_font') || 'inter';
+  document.documentElement.dataset.chatStyle = localStorage.getItem('kopi_chat') || 'classic';
 
   function wireGlobalUI() {
     // rail navigation

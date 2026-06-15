@@ -1,10 +1,10 @@
 # Builds a single self-contained index.html by inlining all local CSS and JS.
-# After running, index.html needs NO css/ or js/ folder — upload that one file.
-# Source of truth stays in css/ and js/. Re-run after restoring the modular
-# index.html if you change the sources.
+# Template = index.src.html (with css/ + js/ refs). Output = index.html (inlined).
+# Edit sources in index.src.html, css/, js/, then run ./build.ps1 to regenerate.
+# Upload only the generated index.html to GitHub.
 $root = $PSScriptRoot
 # Read as UTF-8 so emojis (☕👥📢) and em-dashes survive the build.
-$html = Get-Content (Join-Path $root 'index.html') -Raw -Encoding UTF8
+$html = Get-Content (Join-Path $root 'index.src.html') -Raw -Encoding UTF8
 
 $base   = Get-Content (Join-Path $root 'css/base.css') -Raw -Encoding UTF8
 $themes = Get-Content (Join-Path $root 'css/themes.css') -Raw -Encoding UTF8
